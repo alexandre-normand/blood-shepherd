@@ -21,41 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
-
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
-import jssc.SerialPort;
-
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+package org.glukit.dexcom.sync.responses;
 
 /**
- * Guice module with the dependencies configuration.
+ * Interface for all responses. Used heavily by {@link org.glukit.dexcom.sync.ResponseReader}.
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
-  }
-
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
-  }
+public interface Response {
+  int getExpectedSize();
+  void fromBytes(byte[] responseAsBytes);
 }

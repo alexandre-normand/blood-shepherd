@@ -21,41 +21,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.responses;
 
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
-import jssc.SerialPort;
-
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+import com.google.common.base.Objects;
 
 /**
- * Guice module with the dependencies configuration.
+ * Dexcom has something that is a dummy token response of 1 byte content (plus envelope). The content byte
+ * doesn't seem to have any meaning but the fact that the response is of one byte seems relevant.
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
+public class SingleByteResponse extends BaseResponse {
+  private byte payload;
+
   @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
+  protected int getContentSize() {
+    return 1;
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
+  @Override
+  protected void contentFromBytes(byte[] content) {
+    this.payload = content[0];
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+            .add("payload", payload)
+            .toString();
   }
 }

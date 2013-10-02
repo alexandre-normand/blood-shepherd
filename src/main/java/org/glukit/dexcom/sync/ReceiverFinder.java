@@ -23,6 +23,7 @@
 
 package org.glukit.dexcom.sync;
 
+import com.google.inject.Inject;
 import jssc.SerialPortList;
 
 import java.util.regex.Pattern;
@@ -33,8 +34,11 @@ import java.util.regex.Pattern;
  */
 public class ReceiverFinder {
   public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
+  private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
 
-  public ReceiverFinder() {
+  @Inject
+  public ReceiverFinder(IsReceiverOnThisPortRunner isReceiverOnThisPortRunner) {
+    this.isReceiverOnThisPortRunner = isReceiverOnThisPortRunner;
   }
 
   public String findReceiverPort() {
@@ -44,8 +48,7 @@ public class ReceiverFinder {
     }
 
     for (String port : portNames) {
-      IsReceiverOnThisPortRunner isReceiverOnThisPortRunner = new IsReceiverOnThisPortRunner(port);
-      if (isReceiverOnThisPortRunner.isReceiver()) {
+      if (this.isReceiverOnThisPortRunner.isReceiver(port)) {
         return port;
       }
     }

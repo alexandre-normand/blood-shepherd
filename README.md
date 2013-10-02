@@ -18,3 +18,8 @@ Quick start
 Run it
 ------
 ```java -jar ./target/*jar-with-dependencies.jar```
+
+Status
+------
+Sending a IsFirmware command goes through but it's likely that the bytes are not following the proper ordering.
+See trace [here](https://github.com/bewest/decoding-dexcom/blob/master/alexandre-normand/hex-lines.txt) for some hints.

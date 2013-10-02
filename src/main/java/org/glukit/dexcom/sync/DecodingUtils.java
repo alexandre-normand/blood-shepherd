@@ -23,39 +23,29 @@
 
 package org.glukit.dexcom.sync;
 
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
-import jssc.SerialPort;
-
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+import sun.misc.CRC16;
 
 /**
- * Guice module with the dependencies configuration.
+ * Some useful methods for decoding.
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
+public final class DecodingUtils {
+  public static final int CRC16_SIZE = 2;
+
+  public static int getCrc16(byte[] bytes, int offset, int length) {
+    int contentSize = length - offset;
+    byte[] content = new byte[contentSize];
+    System.arraycopy(bytes, offset, content, 0, contentSize);
+    CRC16 crc = new CRC16();
+    for (byte value : content) {
+      crc.update(value);
+    }
+
+    return unsignedShort((short) crc.value);
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
+  public static int unsignedShort(short value) {
+    return (short) (value & 0xFF);
   }
 }

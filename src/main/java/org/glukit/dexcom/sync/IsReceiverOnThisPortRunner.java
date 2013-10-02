@@ -26,11 +26,15 @@ package org.glukit.dexcom.sync;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import jssc.SerialPortTimeoutException;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.glukit.dexcom.sync.requests.IsFirmware;
+import org.glukit.dexcom.sync.responses.SingleByteResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.glukit.dexcom.sync.commands.IsFirmware;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,16 +54,10 @@ public class IsReceiverOnThisPortRunner {
   public static final int FIRMWARE_BAUD_RATE = 0x9600;
   private static Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
 
-  private String device;
 
-  public IsReceiverOnThisPortRunner(String device) {
-    this.device = device;
-  }
-
-  public boolean isReceiver() {
-    final SerialPort serialPort = new SerialPort(this.device);
+  public boolean isReceiver(String portName) {
     ExecutorService executor = Executors.newSingleThreadExecutor();
-
+    final SerialPort serialPort = new SerialPort(portName);
     try {
 
       SimpleTimeLimiter timeout = new SimpleTimeLimiter(executor);
@@ -68,7 +66,8 @@ public class IsReceiverOnThisPortRunner {
         public Boolean call() throws Exception {
           return isFirmware(serialPort);
         }
-      }, 1, TimeUnit.SECONDS, true);
+      }, 5, TimeUnit.SECONDS, true);
+
 
       return result;
     } catch (Exception e) {
@@ -78,7 +77,7 @@ public class IsReceiverOnThisPortRunner {
       executor.shutdown();
       if (serialPort.isOpened()) {
         try {
-          LOGGER.debug(format("Closing port %s", this.device));
+          LOGGER.debug(format("Closing port %s", serialPort.getPortName()));
           serialPort.closePort();
         } catch (SerialPortException e) {
           LOGGER.debug("Error closing port, ignoring.", e);
@@ -87,15 +86,17 @@ public class IsReceiverOnThisPortRunner {
     }
   }
 
-  private boolean isFirmware(SerialPort serialPort) throws SerialPortException {
+  private boolean isFirmware(SerialPort serialPort) throws SerialPortException, SerialPortTimeoutException {
     serialPort.openPort();
 
     if (!serialPort.isOpened()) {
-      LOGGER.info(format("Couldn't open port %s, assuming this is not the receiver", this.device));
+      LOGGER.info(format("Couldn't open port %s, assuming this is not the receiver", serialPort.getPortName()));
       return false;
     }
 
-    LOGGER.debug(format("Opened port: %b", serialPort.isOpened()));
+
+    printLineStatus(serialPort.getLinesStatus());
+    LOGGER.debug(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
     serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
     byte[] request = new IsFirmware().asBytes();
@@ -103,6 +104,20 @@ public class IsReceiverOnThisPortRunner {
 
     boolean status = serialPort.writeBytes(request);
     LOGGER.info(format("Wrote success: %b", status));
+
+
+    printLineStatus(serialPort.getLinesStatus());
+    byte[] bytes = serialPort.readBytes(7, 1000);
+    LOGGER.info(format("bytes are: %s", Bytes.toStringBinary(bytes)));
+//    ResponseReader responseReader = new ResponseReader(serialPort);
+//    SingleByteResponse singleByteResponse = responseReader.read(SingleByteResponse.class);
+//    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
     return true;
+  }
+
+  private void printLineStatus(int[] statuses) {
+    for (int status: statuses) {
+      LOGGER.debug(format("Line status is %d", status));
+    }
   }
 }

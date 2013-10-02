@@ -24,38 +24,37 @@
 package org.glukit.dexcom.sync;
 
 import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import jssc.SerialPort;
-
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.glukit.dexcom.sync.responses.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Guice module with the dependencies configuration.
+ * Response reader.
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
+public class ResponseReader {
+  private static Logger LOGGER = LoggerFactory.getLogger(ResponseReader.class);
+
+  private SerialPort serialPort;
+
+  public ResponseReader(SerialPort serialPort) {
+    this.serialPort = serialPort;
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
+  public <T extends Response> T read(Class<T> type) {
     try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
+      T response = type.newInstance();
+      byte[] responseAsBytes = this.serialPort.readBytes(response.getExpectedSize());
+      LOGGER.debug("Read bytes from port: %s", Bytes.toStringBinary(responseAsBytes));
+      response.fromBytes(responseAsBytes);
+      return response;
+    } catch (Exception e) {
+      throw Throwables.propagate(e);
     }
-    return usbServices;
   }
 }

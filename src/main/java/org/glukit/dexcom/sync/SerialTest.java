@@ -2,6 +2,7 @@ package org.glukit.dexcom.sync;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +20,8 @@ public class SerialTest {
 
 
   public void run() throws SerialPortException {
-    IsReceiverOnThisPortRunner command = new IsReceiverOnThisPortRunner(DEVICE);
-    boolean isReceiver = command.isReceiver();
+    IsReceiverOnThisPortRunner command = new IsReceiverOnThisPortRunner();
+    boolean isReceiver = command.isReceiver(DEVICE);
     LOGGER.info(format("Is this the receiver on port %s: %b", DEVICE, isReceiver));
   }
 
