@@ -1,11 +1,9 @@
-package org.glukit.dexcom.sync.commands;
+package org.glukit.dexcom.sync.requests;
 
 /**
- * Created with IntelliJ IDEA.
- * User: skippyjon
- * Date: 2013-09-27
- * Time: 9:15 PM
- * To change this template use File | Settings | File Templates.
+ * This is supposed to be the command that we send to check if the serial port queried is the firmware/receiver.
+ *
+ * @author alexandre.normand
  */
 public class IsFirmware extends BaseCommand {
   @Override

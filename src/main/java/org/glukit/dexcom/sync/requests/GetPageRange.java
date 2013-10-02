@@ -21,41 +21,30 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.requests;
 
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
-import jssc.SerialPort;
-
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+import java.nio.ByteBuffer;
 
 /**
- * Guice module with the dependencies configuration.
- *
+ * GetPageRange request command.
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
+public class GetPageRange implements Command {
   @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
+  public ByteBuffer asByteBuffer() {
+    byte[] pageRangeRequest = asBytes();
+    return ByteBuffer.wrap(pageRangeRequest);
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
+  @Override
+  public byte[] asBytes() {
+    byte[] pageRangeRequest = new byte[7];
+    pageRangeRequest[0] = 0x01;
+    pageRangeRequest[1] = 0x07;
+    pageRangeRequest[3] = 0x10;
+    pageRangeRequest[4] = 0x04;
+    pageRangeRequest[5] = (byte) 0x8b;
+    pageRangeRequest[6] = (byte) 0xb8;
+    return pageRangeRequest;
   }
 }

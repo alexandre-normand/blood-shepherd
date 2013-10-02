@@ -1,7 +1,6 @@
-package org.glukit.dexcom.sync.commands;
+package org.glukit.dexcom.sync.requests;
 
 import com.google.common.base.Throwables;
-import sun.misc.CRC16;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -9,12 +8,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static org.glukit.dexcom.sync.DecodingUtils.getCrc16;
+import static org.glukit.dexcom.sync.DecodingUtils.unsignedShort;
+
 /**
- * Created with IntelliJ IDEA.
- * User: skippyjon
- * Date: 2013-09-27
- * Time: 8:36 PM
- * To change this template use File | Settings | File Templates.
+ * Base request class.
+ * @author alexandre.normand
  */
 public abstract class BaseCommand implements Command {
   @Override
@@ -32,27 +31,21 @@ public abstract class BaseCommand implements Command {
       output.write(getCommandId());
       output.writeShort(getSize());
       int contentSize = getSize() - 2;
-      byte[] content = new byte[contentSize];
-      System.arraycopy(outputStream.toByteArray(), 0, content, 0, contentSize);
-      output.writeShort(unsignedShort(getCrc16(content)));
+      output.writeShort(getCrc16(outputStream.toByteArray(), 0, contentSize));
+//      output.write((byte) 0x01);
+//      output.write((byte) 0x07);
+//      output.write((byte) 0x00);
+//      output.write((byte) 0x10);
+//      output.write((byte) 0x04);
+//      output.write((byte) 0x8b);
+//      output.write((byte) 0xb8);
       return outputStream.toByteArray();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }
 
-  protected static int unsignedShort(short value) {
-    return value & 0xFF;
-  }
 
-  protected static short getCrc16(byte[] bytes) {
-    CRC16 crc = new CRC16();
-    for (byte value : bytes) {
-      crc.update(value);
-    }
-
-    return (short) crc.value;
-  }
 
   public abstract byte getCommandId();
   public abstract byte getSizeOfField();
