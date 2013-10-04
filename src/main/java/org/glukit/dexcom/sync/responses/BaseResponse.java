@@ -26,8 +26,11 @@ package org.glukit.dexcom.sync.responses;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
+import com.google.inject.Inject;
+import org.glukit.dexcom.sync.DataInputFactory;
 import org.glukit.dexcom.sync.ReceiverCommand;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 
@@ -49,6 +52,13 @@ public abstract class BaseResponse implements Response {
   private short size;
   private int crc;
 
+  private DataInputFactory dataInputFactory;
+
+  @Inject
+  protected BaseResponse(DataInputFactory dataInputFactory) {
+    this.dataInputFactory = dataInputFactory;
+  }
+
   @Override
   public int getExpectedSize() {
     return ENVELOPPE_SIZE + getContentSize();
@@ -57,11 +67,11 @@ public abstract class BaseResponse implements Response {
   @Override
   public void fromBytes(byte[] responseAsBytes) {
     try {
-      DataInput input = ByteStreams.newDataInput(responseAsBytes);
+      DataInput input = this.dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
       this.sizeOfField = input.readByte();
+      this.size = input.readShort();
       byte commandId = input.readByte();
       this.command = ReceiverCommand.fromId(commandId);
-      this.size = input.readShort();
       byte[] payload = new byte[getContentSize()];
       input.readFully(payload, 0, getContentSize());
       contentFromBytes(payload);

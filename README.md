@@ -23,3 +23,9 @@ Status
 ------
 Sending a IsFirmware command goes through but it's likely that the bytes are not following the proper ordering.
 See trace [here](https://github.com/bewest/decoding-dexcom/blob/master/alexandre-normand/hex-lines.txt) for some hints.
+
+Notes
+-----
+Everything is little-endian. Thankfully, google-guava has a nice
+[LittleEndianDataOutputStream](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/io/LittleEndianDataOutputStream.html)
+that provides the same convenient interface while breaking Java's contract of big-endianness.

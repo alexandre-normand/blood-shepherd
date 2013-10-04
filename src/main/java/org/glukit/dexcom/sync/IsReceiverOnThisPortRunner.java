@@ -24,6 +24,7 @@
 package org.glukit.dexcom.sync;
 
 import com.google.common.util.concurrent.SimpleTimeLimiter;
+import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortTimeoutException;
@@ -33,8 +34,6 @@ import org.glukit.dexcom.sync.responses.SingleByteResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,12 +47,24 @@ import static java.lang.String.format;
  * @author alexandre.normand
  */
 public class IsReceiverOnThisPortRunner {
+  private static Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
   public static final int DATA_BITS = 8;
   public static final int STOP_BITS = 1;
   public static final int NO_PARITY = 0;
   public static final int FIRMWARE_BAUD_RATE = 0x9600;
-  private static Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
 
+  private DataOutputFactory dataOutputFactory;
+  private DataInputFactory dataInputFactory;
+  private ResponseReader responseReader;
+
+  @Inject
+  public IsReceiverOnThisPortRunner(DataOutputFactory dataOutputFactory,
+                                    DataInputFactory dataInputFactory,
+                                    ResponseReader responseReader) {
+    this.dataOutputFactory = dataOutputFactory;
+    this.dataInputFactory = dataInputFactory;
+    this.responseReader = responseReader;
+  }
 
   public boolean isReceiver(String portName) {
     ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -94,24 +105,18 @@ public class IsReceiverOnThisPortRunner {
       return false;
     }
 
-
     printLineStatus(serialPort.getLinesStatus());
     LOGGER.debug(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
     serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
-    byte[] request = new IsFirmware().asBytes();
+    byte[] request = new IsFirmware(this.dataOutputFactory).asBytes();
     LOGGER.debug(format("Writing [%d] bytes: [%s]", request.length, Bytes.toStringBinary(request)));
 
     boolean status = serialPort.writeBytes(request);
     LOGGER.info(format("Wrote success: %b", status));
 
-
-    printLineStatus(serialPort.getLinesStatus());
-    byte[] bytes = serialPort.readBytes(7, 1000);
-    LOGGER.info(format("bytes are: %s", Bytes.toStringBinary(bytes)));
-//    ResponseReader responseReader = new ResponseReader(serialPort);
-//    SingleByteResponse singleByteResponse = responseReader.read(SingleByteResponse.class);
-//    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
+    SingleByteResponse singleByteResponse = this.responseReader.read(SingleByteResponse.class, serialPort);
+    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
     return true;
   }
 

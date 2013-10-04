@@ -2,7 +2,9 @@ package org.glukit.dexcom.sync;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import jssc.SerialPort;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import jssc.SerialPortException;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +20,21 @@ public class SerialTest {
   public static final String DEVICE = "/dev/tty.usbmodem5d11";
   private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
 
+  private IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
+
+  @Inject
+  public SerialTest(IsReceiverOnThisPortRunner receiverOnThisPortRunner) {
+    this.isReceiverOnThisPortRunner = receiverOnThisPortRunner;
+  }
 
   public void run() throws SerialPortException {
-    IsReceiverOnThisPortRunner command = new IsReceiverOnThisPortRunner();
-    boolean isReceiver = command.isReceiver(DEVICE);
+    boolean isReceiver = this.isReceiverOnThisPortRunner.isReceiver(DEVICE);
     LOGGER.info(format("Is this the receiver on port %s: %b", DEVICE, isReceiver));
   }
 
   public static void main(String[] args) throws UsbException, SerialPortException {
-    SerialTest serialTest = new SerialTest();
+    Injector injector = Guice.createInjector(new DexcomModule());
+    SerialTest serialTest = injector.getInstance(SerialTest.class);
 
     JCommander jCommander = new JCommander(serialTest, args);
     try {

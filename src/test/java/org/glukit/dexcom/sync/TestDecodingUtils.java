@@ -23,39 +23,34 @@
 
 package org.glukit.dexcom.sync;
 
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
+import org.junit.Test;
 
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
-import javax.usb.UsbServices;
-
-import static com.google.common.collect.Maps.newHashMap;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Guice module with the dependencies configuration.
+ * Test of {@link DecodingUtils}
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
-
-    bind(DataOutputFactory.class).to(LittleEndianDataOutputFactory.class);
-    bind(DataInputFactory.class).to(LittleEndianDataInputFactory.class);
+public class TestDecodingUtils {
+  /**
+   * This example comes from the trace here:
+   * https://github.com/bewest/decoding-dexcom/blob/master/alexandre-normand/hex-lines.txt
+   */
+  @Test
+  public void crc16ShouldMatchAlgoFromReceiver() throws Exception {
+    byte[] array = new byte[] { (byte) 0x01, (byte) 0x06, (byte) 0x00, (byte) 0x0A, (byte) 0x5E, (byte) 0x65};
+    int crc16 = DecodingUtils.getCrc16(array, 0, array.length - 2);
+    assertThat(crc16, equalTo(25950));
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
+  @Test
+  public void crc16ShouldMatchExample2() throws Exception {
+    byte[] array = new byte[] { (byte) 0x01, (byte) 0x08, (byte) 0x00, (byte) 0x01, (byte) 0x09, (byte) 0x04,
+            (byte) 0xA1, (byte) 0x8A};
+
+    int crc16 = DecodingUtils.getCrc16(array, 0, array.length - 2);
+    assertThat(crc16, equalTo(35489));
   }
 }

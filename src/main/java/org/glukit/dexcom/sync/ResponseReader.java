@@ -32,6 +32,8 @@ import org.glukit.dexcom.sync.responses.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
+
 /**
  * Response reader.
  *
@@ -40,17 +42,18 @@ import org.slf4j.LoggerFactory;
 public class ResponseReader {
   private static Logger LOGGER = LoggerFactory.getLogger(ResponseReader.class);
 
-  private SerialPort serialPort;
+  private DataInputFactory dataInputFactory;
 
-  public ResponseReader(SerialPort serialPort) {
-    this.serialPort = serialPort;
+  @Inject
+  public ResponseReader(DataInputFactory dataInputFactory) {
+    this.dataInputFactory = dataInputFactory;
   }
 
-  public <T extends Response> T read(Class<T> type) {
+  public <T extends Response> T read(Class<T> type, SerialPort serialPort) {
     try {
-      T response = type.newInstance();
-      byte[] responseAsBytes = this.serialPort.readBytes(response.getExpectedSize());
-      LOGGER.debug("Read bytes from port: %s", Bytes.toStringBinary(responseAsBytes));
+      T response = type.getConstructor(DataInputFactory.class).newInstance(this.dataInputFactory);
+      byte[] responseAsBytes = serialPort.readBytes(response.getExpectedSize());
+      LOGGER.debug(format("Read bytes from port: %s", Bytes.toStringBinary(responseAsBytes)));
       response.fromBytes(responseAsBytes);
       return response;
     } catch (Exception e) {

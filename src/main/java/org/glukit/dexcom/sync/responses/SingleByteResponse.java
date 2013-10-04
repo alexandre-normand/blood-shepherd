@@ -24,6 +24,7 @@
 package org.glukit.dexcom.sync.responses;
 
 import com.google.common.base.Objects;
+import org.glukit.dexcom.sync.DataInputFactory;
 
 /**
  * Dexcom has something that is a dummy token response of 1 byte content (plus envelope). The content byte
@@ -34,9 +35,13 @@ import com.google.common.base.Objects;
 public class SingleByteResponse extends BaseResponse {
   private byte payload;
 
+  public SingleByteResponse(DataInputFactory dataInputFactory) {
+    super(dataInputFactory);
+  }
+
   @Override
   protected int getContentSize() {
-    return 1;
+    return 2;
   }
 
   @Override

@@ -105,7 +105,7 @@ public enum ReceiverCommand {
   WriteUserLowSnooze((byte) 0x47);
 
   private byte id;
-  private static Map<Byte, ReceiverCommand> mappings = newHashMap();
+  private static Map<Byte, ReceiverCommand> mappings;
 
   private ReceiverCommand(byte id) {
     this.id = id;
@@ -113,6 +113,9 @@ public enum ReceiverCommand {
   }
 
   private static void addMapping(byte id, ReceiverCommand receiverCommand) {
+    if (mappings == null) {
+      mappings = newHashMap();
+    }
     mappings.put(id, receiverCommand);
   }
 
