@@ -23,8 +23,11 @@
 
 package org.glukit.dexcom.sync;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.DatatypeConverter;
 
 import static java.lang.String.format;
 
@@ -66,14 +69,23 @@ public final class DecodingUtils {
 
     int value = 0;
     for (byte element : content) {
-      LOGGER.debug(format("parts [%d, %d, %d]", (value << 8), ((value >>> 8) ^ element) & 0xff, CRC16_TABLE[((value >>> 8) ^ element) & 0xff]));
-      value = (short) ((value << 8) ^ CRC16_TABLE[((value >>> 8) ^ element) & 0xff]);
-      LOGGER.debug(format("value is %d", value));
+      value = unsignedShort((value << 8) ^ CRC16_TABLE[((value >>> 8) ^ element) & 0xff]);
     }
     return value;
   }
 
-  public static int unsignedShort(short value) {
-    return (short) (value & 0xFF);
+  public static int unsignedShort(int value) {
+    return (short) value & 0xFFFF;
+  }
+
+  /**
+   * Takes a string like 0A 0F 05 and converts it into a byte array.
+   *
+   * @param hexString hex string, can contain spaces
+   * @return the byte array
+   */
+  public static byte[] fromHexString(String hexString) {
+    String hexStringWithoutSpaces = StringUtils.remove(hexString, " ");
+    return DatatypeConverter.parseHexBinary(hexStringWithoutSpaces);
   }
 }
