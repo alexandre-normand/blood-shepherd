@@ -28,7 +28,6 @@ import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortTimeoutException;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.glukit.dexcom.sync.requests.IsFirmware;
 import org.glukit.dexcom.sync.responses.SingleByteResponse;
 import org.slf4j.Logger;
@@ -40,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
 
 /**
  * Checks if a given serial device is actually the dexcom receiver.
@@ -110,7 +110,7 @@ public class IsReceiverOnThisPortRunner {
     serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
     byte[] request = new IsFirmware(this.dataOutputFactory).asBytes();
-    LOGGER.debug(format("Writing [%d] bytes: [%s]", request.length, Bytes.toStringBinary(request)));
+    LOGGER.debug(format("Writing [%d] bytes: [%s]", request.length, toHexString(request)));
 
     boolean status = serialPort.writeBytes(request);
     LOGGER.info(format("Wrote success: %b", status));

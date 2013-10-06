@@ -23,12 +23,10 @@
 
 package org.glukit.dexcom.sync;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import javax.xml.bind.DatatypeConverter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -52,8 +50,11 @@ public class TestDecodingUtils {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{{"WriteBios", fromHexString("01 06 00 0A 5E 65")},
-            {"AmIFirmwareResponse", fromHexString("01 06 00 0B 7F 75")},
+            {"AmIFirmwareRequest", fromHexString("01 06 00 1b 4e 67")},
+            {"AmIFirmwareResponse", fromHexString("01 08 00 01 09 04 a1 8a")},
             {"ReadBiosHeader", fromHexString("01 06 00 0B 7F 75")},
+            {"ReadLastPageOrSomethingLikeThat", fromHexString("01 07 00 10 04 8b b8")},
+            {"SomeRequestThatTriggersGlucoseInResponse", fromHexString("01 0c 00 11 04 b9 05 00 00 04 6d 29")},
             {"ReadBiosResponse", fromHexString("01 03 01 01 3C 46 69 72 6D 77 61 72 65 48 65 61 64 65 72 20 53 63 " +
                     "68 65 6D 61 56 65 72 73 69 6F 6E 3D 27 31 27 20 41 70 69 56 65 72 73 69 6F 6E 3D 27 32 2E 32 2E " +
                     "30 2E 30 27 20 54 65 73 74 41 70 69 56 65 72 73 69 6F 6E 3D 27 32 2E 34 2E 30 2E 30 27 20 50 " +

@@ -21,42 +21,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.requests;
 
-import com.google.common.base.Throwables;
-import com.google.inject.Inject;
-import jssc.SerialPort;
-import org.glukit.dexcom.sync.responses.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static java.lang.String.format;
-import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
+import org.glukit.dexcom.sync.DataOutputFactory;
 
 /**
- * Response reader.
- *
+ * Read Bios Header command.
  * @author alexandre.normand
  */
-public class ResponseReader {
-  private static Logger LOGGER = LoggerFactory.getLogger(ResponseReader.class);
-
-  private DataInputFactory dataInputFactory;
-
-  @Inject
-  public ResponseReader(DataInputFactory dataInputFactory) {
-    this.dataInputFactory = dataInputFactory;
+public class ReadBiosHeader extends BaseCommand {
+  public ReadBiosHeader(DataOutputFactory dataOutputFactory) {
+    super(dataOutputFactory);
   }
 
-  public <T extends Response> T read(Class<T> type, SerialPort serialPort) {
-    try {
-      T response = type.getConstructor(DataInputFactory.class).newInstance(this.dataInputFactory);
-      byte[] responseAsBytes = serialPort.readBytes(response.getExpectedSize());
-      LOGGER.debug(format("Read bytes from port: %s", toHexString(responseAsBytes)));
-      response.fromBytes(responseAsBytes);
-      return response;
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
+  @Override
+  public byte getCommandId() {
+    return 10;
+  }
+
+  @Override
+  public byte getSizeOfField() {
+    return 1;
+  }
+
+  @Override
+  public short getSize() {
+    return 6;
   }
 }

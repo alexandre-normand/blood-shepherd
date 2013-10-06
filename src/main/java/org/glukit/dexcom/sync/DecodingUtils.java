@@ -23,12 +23,16 @@
 
 package org.glukit.dexcom.sync;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
 /**
@@ -87,5 +91,21 @@ public final class DecodingUtils {
   public static byte[] fromHexString(String hexString) {
     String hexStringWithoutSpaces = StringUtils.remove(hexString, " ");
     return DatatypeConverter.parseHexBinary(hexStringWithoutSpaces);
+  }
+
+  /**
+   * Prints a space delimited hex string of a byte array.
+   *
+   * @param value the bytes
+   * @return the hex string such as "01 01" for a byte array of two elements ([1 1]).
+   */
+  public static String toHexString(byte[] value) {
+    List<String> hexChars = newArrayList();
+
+    for (byte element : value) {
+      hexChars.add(String.format("%02x", element));
+    }
+
+    return Joiner.on(" ").join(hexChars);
   }
 }
