@@ -15,7 +15,9 @@ None (0) is one I've seen but all of them should be read as not a valid read.
 
 A lot of packets start with 01. Then, it's followed by the size of the packet (everything is little endian). The last two
 bytes are for the CRC16 short value. So in examples like those, the command ids would be the single byte following ```06 00```:
+
 ```01 06 00 0A 5E 65``` (0A: Write bios)
+
 ```01 06 00 0B 7F 75``` (0B: ReadBiosHeader) 
 
 Except that it doesn't seem to fit with most examples. 
