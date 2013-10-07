@@ -23,3 +23,13 @@ bytes are for the CRC16 short value. So in examples like those, the command ids 
 Except that it doesn't seem to fit with most examples. 
 
 For example: Sending AmIFirmware (0x1b) with ```01 06 00 1b 4e 67``` gives back a 8 byte response ```01 08 00 01 09 04 a1 8a``` instead of the expected 7 bytes response with ACK (0x06) and 1 byte payload.
+
+Summary of current packet layout
+================================
+```01```: sof (not sure what the meaning is but it's almost a constant)
+
+```xx xx```: size of whole packet (minimum being one since we've got sof, size (2 bytes), command id (1 byte and crc16 (2 bytes)) as a short, little endian
+
+```xx```: command id (1 byte)
+
+```xx xx```: crc16 (short, 2 bytes, little endian)
