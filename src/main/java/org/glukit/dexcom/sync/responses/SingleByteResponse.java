@@ -41,7 +41,7 @@ public class SingleByteResponse extends BaseResponse {
 
   @Override
   protected int getContentSize() {
-    return 2;
+    return 1;
   }
 
   @Override

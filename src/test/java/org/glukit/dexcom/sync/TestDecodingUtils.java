@@ -54,6 +54,8 @@ public class TestDecodingUtils {
             {"AmIFirmwareResponse", fromHexString("01 08 00 01 09 04 a1 8a")},
             {"ReadBiosHeader", fromHexString("01 06 00 0B 7F 75")},
             {"ReadLastPageOrSomethingLikeThat", fromHexString("01 07 00 10 04 8b b8")},
+            {"Reset", fromHexString("01 06 00 2e b8 01")},
+            {"JReadPage", fromHexString("01 07 00 10 04 8b b8")},
             {"SomeRequestThatTriggersGlucoseInResponse", fromHexString("01 0c 00 11 04 b9 05 00 00 04 6d 29")},
             {"ReadBiosResponse", fromHexString("01 03 01 01 3C 46 69 72 6D 77 61 72 65 48 65 61 64 65 72 20 53 63 " +
                     "68 65 6D 61 56 65 72 73 69 6F 6E 3D 27 31 27 20 41 70 69 56 65 72 73 69 6F 6E 3D 27 32 2E 32 2E " +
@@ -86,6 +88,10 @@ public class TestDecodingUtils {
             equalTo(getPacketCrcValue()));
   }
 
+  @Test
+  public void testSize() throws Exception {
+    System.out.println("Size is " + fromHexString("01 0E 00 01 00 00 00 00 00 00 00 00 2C BB").length);
+  }
   private short getPacketCrcValue() {
     ByteBuffer buffer = ByteBuffer.wrap(this.packet, this.packet.length - 2, 2);
     buffer.order(ByteOrder.LITTLE_ENDIAN);

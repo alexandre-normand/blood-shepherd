@@ -23,20 +23,22 @@
 
 package org.glukit.dexcom.sync.requests;
 
-import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
+import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
+import org.junit.Test;
+
+import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * Read Bios Header command.
+ * Unit test of {@link ReadBiosHeader}
+ *
  * @author alexandre.normand
  */
-public class ReadBiosHeader extends BaseCommand {
-  public ReadBiosHeader(DataOutputFactory dataOutputFactory) {
-    super(dataOutputFactory);
-  }
-
-  @Override
-  public ReceiverCommand getCommand() {
-    return ReceiverCommand.ReadBiosHeader;
+public class TestReadBiosHeader {
+  @Test
+  public void readBiosHeaderShouldGenerateCorrectBytes() {
+    ReadBiosHeader readBiosHeader = new ReadBiosHeader(new LittleEndianDataOutputFactory());
+    assertThat(readBiosHeader.asBytes(), equalTo(fromHexString("01 0B 00 00 45 86")));
   }
 }

@@ -69,9 +69,9 @@ public abstract class BaseResponse implements Response {
     try {
       DataInput input = this.dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
       this.sizeOfField = input.readByte();
-      this.size = input.readShort();
       byte commandId = input.readByte();
       this.command = ReceiverCommand.fromId(commandId);
+      this.size = input.readShort();
       byte[] payload = new byte[getContentSize()];
       input.readFully(payload, 0, getContentSize());
       contentFromBytes(payload);

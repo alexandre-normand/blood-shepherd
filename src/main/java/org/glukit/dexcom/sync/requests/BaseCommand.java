@@ -3,6 +3,7 @@ package org.glukit.dexcom.sync.requests;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import org.glukit.dexcom.sync.DataOutputFactory;
+import org.glukit.dexcom.sync.ReceiverCommand;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -35,9 +36,9 @@ public abstract class BaseCommand implements Command {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream(getSize());
       DataOutput output = this.dataOutputFactory.create(outputStream);
       output.write(getSizeOfField());
+      output.write(getCommand().getId());
       output.writeShort(getSize());
-      output.write(getCommandId());
-      int contentSize = getSize() - 2;
+      int contentSize = outputStream.size();
       output.writeShort(getCrc16(outputStream.toByteArray(), 0, contentSize));
       return outputStream.toByteArray();
     } catch (IOException e) {
@@ -45,9 +46,13 @@ public abstract class BaseCommand implements Command {
     }
   }
 
+  public abstract ReceiverCommand getCommand();
 
+  public byte getSizeOfField() {
+    return 1;
+  }
 
-  public abstract byte getCommandId();
-  public abstract byte getSizeOfField();
-  public abstract short getSize();
+  public short getSize() {
+    return 0;
+  }
 }
