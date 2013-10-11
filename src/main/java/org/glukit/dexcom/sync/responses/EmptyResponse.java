@@ -21,29 +21,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.requests;
+package org.glukit.dexcom.sync.responses;
 
-import org.glukit.dexcom.sync.DecodingUtils;
-import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
-import org.junit.Test;
-
-import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import org.glukit.dexcom.sync.DataInputFactory;
 
 /**
- * Unit test of {@link IsFirmware}.
- *
+ * Empty (6 bytes) response
  * @author alexandre.normand
  */
-public class TestIsFirmware {
+public class EmptyResponse implements Response {
 
-  /**
-   * Validate that the bytes generated from this command match the expectations (from trace examples).
-   */
-  @Test
-  public void isFirmwareShouldGenerateCorrectBytes() {
-    IsFirmware isFirmware = new IsFirmware(new LittleEndianDataOutputFactory());
-    assertThat(isFirmware.asBytes(), equalTo(fromHexString("01 1B 00 00 26 C5")));
+  @Override
+  public void fromBytes(byte[] responseAsBytes) {
+    // No content
   }
+
 }

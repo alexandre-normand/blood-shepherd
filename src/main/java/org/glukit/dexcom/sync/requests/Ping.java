@@ -8,15 +8,19 @@ import org.glukit.dexcom.sync.ReceiverCommand;
  *
  * @author alexandre.normand
  */
-public class IsFirmware extends BaseCommand {
+public class Ping extends BaseCommand {
 
-  public IsFirmware(DataOutputFactory dataOutputFactory) {
+  public Ping(DataOutputFactory dataOutputFactory) {
     super(dataOutputFactory);
   }
 
   @Override
   public ReceiverCommand getCommand() {
-    return ReceiverCommand.AmIFirmware;
+    return ReceiverCommand.Ping;
   }
 
+  @Override
+  public short getContentSize() {
+    return 0;
+  }
 }

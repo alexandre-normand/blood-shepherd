@@ -28,8 +28,7 @@ import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortTimeoutException;
-import org.glukit.dexcom.sync.requests.IsFirmware;
-import org.glukit.dexcom.sync.responses.SingleByteResponse;
+import org.glukit.dexcom.sync.requests.Ping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,14 +108,15 @@ public class IsReceiverOnThisPortRunner {
     LOGGER.debug(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
     serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
-    byte[] request = new IsFirmware(this.dataOutputFactory).asBytes();
+    byte[] request = new Ping(this.dataOutputFactory).asBytes();
     LOGGER.debug(format("Writing [%d] bytes: [%s]", request.length, toHexString(request)));
 
     boolean status = serialPort.writeBytes(request);
     LOGGER.info(format("Wrote success: %b", status));
 
-    SingleByteResponse singleByteResponse = this.responseReader.read(SingleByteResponse.class, serialPort);
-    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
+    // Trace seems to indicate that there's no response to a ping?
+//    EmptyResponse singleByteResponse = this.responseReader.read(EmptyResponse.class, serialPort);
+//    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
     return true;
   }
 

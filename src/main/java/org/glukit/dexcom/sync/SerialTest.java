@@ -6,6 +6,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import jssc.SerialPortException;
+import org.glukit.dexcom.sync.requests.ReadFirmwareHeader;
 import org.slf4j.LoggerFactory;
 
 import javax.usb.UsbException;
@@ -17,7 +18,7 @@ import static java.lang.String.format;
  * @author alexandre.normand
  */
 public class SerialTest {
-  public static final String DEVICE = "/dev/tty.usbmodem5d11";
+  public static final String DEVICE = "/dev/tty.usbmodem3a21";
   private static org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
 
   private IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;

@@ -21,22 +21,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.requests;
+package org.glukit.dexcom.sync.responses;
 
-import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
+import com.google.common.base.Throwables;
+
+import java.io.UnsupportedEncodingException;
 
 /**
- * Read Bios Header command.
+ * Generic Response
+ *
  * @author alexandre.normand
  */
-public class ReadBiosHeader extends BaseCommand {
-  public ReadBiosHeader(DataOutputFactory dataOutputFactory) {
-    super(dataOutputFactory);
-  }
+public class GenericResponse implements Response {
+
+  private String firmware;
 
   @Override
-  public ReceiverCommand getCommand() {
-    return ReceiverCommand.ReadBiosHeader;
+  public void fromBytes(byte[] responseAsBytes) {
+    try {
+      this.firmware = new String(responseAsBytes, "UTF8");
+    } catch (UnsupportedEncodingException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  public String getFirmware() {
+    return firmware;
   }
 }

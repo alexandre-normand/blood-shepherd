@@ -36,8 +36,8 @@ public abstract class BaseCommand implements Command {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream(getSize());
       DataOutput output = this.dataOutputFactory.create(outputStream);
       output.write(getSizeOfField());
-      output.write(getCommand().getId());
       output.writeShort(getSize());
+      output.write(getCommand().getId());
       int contentSize = outputStream.size();
       output.writeShort(getCrc16(outputStream.toByteArray(), 0, contentSize));
       return outputStream.toByteArray();
@@ -53,6 +53,8 @@ public abstract class BaseCommand implements Command {
   }
 
   public short getSize() {
-    return 0;
+    return (short) (6 + getContentSize());
   }
+
+  public abstract short getContentSize();
 }

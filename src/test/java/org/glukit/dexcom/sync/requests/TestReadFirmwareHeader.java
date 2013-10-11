@@ -21,13 +21,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync.requests;
+
+import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
+import org.junit.Test;
+
+import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * Interface for all responses. Used heavily by {@link org.glukit.dexcom.sync.ResponseReader}.
+ * Unit test of {@link ReadFirmwareHeader}
  *
  * @author alexandre.normand
  */
-public interface Response {
-  void fromBytes(byte[] responseAsBytes);
+public class TestReadFirmwareHeader {
+  @Test
+  public void readFirmwareBytesShouldMatchExample() throws Exception {
+    ReadFirmwareHeader readFirmwareHeader = new ReadFirmwareHeader(new LittleEndianDataOutputFactory());
+    assertThat(readFirmwareHeader.asBytes(), equalTo(fromHexString("01 06 00 0B 7F 75")));
+  }
 }

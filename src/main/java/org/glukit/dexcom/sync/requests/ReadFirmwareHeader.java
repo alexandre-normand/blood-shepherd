@@ -21,13 +21,28 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync.requests;
+
+import org.glukit.dexcom.sync.DataOutputFactory;
+import org.glukit.dexcom.sync.ReceiverCommand;
 
 /**
- * Interface for all responses. Used heavily by {@link org.glukit.dexcom.sync.ResponseReader}.
+ * ReadFirmwareHeader command
  *
  * @author alexandre.normand
  */
-public interface Response {
-  void fromBytes(byte[] responseAsBytes);
+public class ReadFirmwareHeader extends BaseCommand {
+  public ReadFirmwareHeader(DataOutputFactory dataOutputFactory) {
+    super(dataOutputFactory);
+  }
+
+  @Override
+  public ReceiverCommand getCommand() {
+    return ReceiverCommand.ReadFirmwareHeader;
+  }
+
+  @Override
+  public short getContentSize() {
+    return 0;
+  }
 }

@@ -31,14 +31,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * Unit test of {@link ReadBiosHeader}
+ * Unit test of {@link Ping}.
  *
  * @author alexandre.normand
  */
-public class TestReadBiosHeader {
+public class TestPing {
+
+  /**
+   * Validate that the bytes generated from this command match the expectations (from trace examples).
+   */
   @Test
-  public void readBiosHeaderShouldGenerateCorrectBytes() {
-    ReadBiosHeader readBiosHeader = new ReadBiosHeader(new LittleEndianDataOutputFactory());
-    assertThat(readBiosHeader.asBytes(), equalTo(fromHexString("01 0B 00 00 45 86")));
+  public void pingShouldGenerateCorrectBytes() {
+    Ping firmware = new Ping(new LittleEndianDataOutputFactory());
+    assertThat(firmware.asBytes(), equalTo(fromHexString("01 06 00 0A 5E 65")));
   }
 }
