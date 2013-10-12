@@ -23,38 +23,14 @@
 
 package org.glukit.dexcom.sync;
 
-import com.google.inject.Inject;
-import jssc.SerialPortList;
-import org.glukit.dexcom.sync.tasks.IsReceiverOnThisPortRunner;
-
-import java.util.regex.Pattern;
-
 /**
- * Finds the {@link jssc.SerialPort} for the Dexcom receiver
+ * Constants associated with the Dexcom G4 Platinum receiver
  * @author alexandre.normand
  */
-public class ReceiverFinder {
-  public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
-  private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
+public class DexcomG4Constants {
 
-  @Inject
-  public ReceiverFinder(IsReceiverOnThisPortRunner isReceiverOnThisPortRunner) {
-    this.isReceiverOnThisPortRunner = isReceiverOnThisPortRunner;
-  }
-
-  public String findReceiverPort() {
-    String[] portNames = SerialPortList.getPortNames(DEVICE_FILTER);
-    if (portNames == null || portNames.length == 0) {
-      throw new IllegalStateException("Receiver serial port can't be found");
-    }
-
-    for (String port : portNames) {
-      if (this.isReceiverOnThisPortRunner.isReceiver(port)) {
-        return port;
-      }
-    }
-
-    throw new IllegalStateException("Found some matching devices but none of them identified as the dexcom receiver. " +
-            "Maybe another application is holding the port?");
-  }
+  public static final int DATA_BITS = 8;
+  public static final int STOP_BITS = 1;
+  public static final int NO_PARITY = 0;
+  public static final int FIRMWARE_BAUD_RATE = 0x9600;
 }

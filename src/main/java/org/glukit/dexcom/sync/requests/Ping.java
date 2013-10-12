@@ -20,7 +20,7 @@ public class Ping extends BaseCommand {
   }
 
   @Override
-  public short getContentSize() {
-    return 0;
+  protected byte[] getContent() {
+    return new byte[0];
   }
 }

@@ -23,21 +23,46 @@
 
 package org.glukit.dexcom.sync.responses;
 
-import org.junit.Test;
+import com.google.common.base.Throwables;
+import com.google.common.primitives.UnsignedInts;
+import org.glukit.dexcom.sync.DataInputFactory;
 
-import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import java.io.ByteArrayInputStream;
+import java.io.DataInput;
+import java.io.IOException;
 
 /**
- * Unit test of generic response decoding
+ * PageRangeResponse
+ *
  * @author alexandre.normand
  */
-public class TestGenericResponse {
+public class PageRangeResponse extends GenericResponse {
 
-  @Test
-  public void decodeShouldSucceed() throws Exception {
-    byte input[] = fromHexString("01 3C 46 69 72 6D 77 61 72 65 48 65 61 64 65 72 20 53 63 68 65 6D 61 56 65 72 73 69 6F 6E 3D 27 31 27 20 41 70 69 56 65 72 73 69 6F 6E 3D 27 32 2E 32 2E 30 2E 30 27 20 54 65 73 74 41 70 69 56 65 72 73 69 6F 6E 3D 27 32 2E 34 2E 30 2E 30 27 20 50 72 6F 64 75 63 74 49 64 3D 27 47 34 52 65 63 65 69 76 65 72 27 20 50 72 6F 64 75 63 74 4E 61 6D 65 3D 27 44 65 78 63 6F 6D 20 47 34 20 52 65 63 65 69 76 65 72 27 20 53 6F 66 74 77 61 72 65 4E 75 6D 62 65 72 3D 27 53 57 31 30 30 35 30 27 20 46 69 72 6D 77 61 72 65 56 65 72 73 69 6F 6E 3D 27 32 2E 30 2E 31 2E 31 30 34 27 20 50 6F 72 74 56 65 72 73 69 6F 6E 3D 27 34 2E 36 2E 34 2E 34 35 27 20 52 46 56 65 72 73 69 6F 6E 3D 27 31 2E 30 2E 30 2E 32 37 27 20 44 65 78 42 6F 6F 74 56 65 72 73 69 6F 6E 3D 27 33 27 2F 3E");
-    GenericResponse genericResponse = new GenericResponse();
-    genericResponse.fromBytes(input);
-    System.out.println(genericResponse.getFirmware());
+  private long firstPage;
+  private long lastPage;
+
+  public PageRangeResponse(DataInputFactory dataInputFactory) {
+    super(dataInputFactory);
+  }
+
+  @Override
+  public void fromBytes(byte[] responseAsBytes) {
+    super.fromBytes(responseAsBytes);
+    try {
+      DataInput dataInput = dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
+      this.firstPage = UnsignedInts.toLong(dataInput.readInt());
+      this.lastPage = UnsignedInts.toLong(dataInput.readInt());
+
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  public long getFirstPage() {
+    return this.firstPage;
+  }
+
+  public long getLastPage() {
+    return this.lastPage;
   }
 }

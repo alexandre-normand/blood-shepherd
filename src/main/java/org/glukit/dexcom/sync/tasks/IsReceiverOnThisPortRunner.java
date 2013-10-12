@@ -21,14 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.tasks;
 
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortTimeoutException;
+import org.glukit.dexcom.sync.*;
 import org.glukit.dexcom.sync.requests.Ping;
+import org.glukit.dexcom.sync.responses.GenericResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +48,7 @@ import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
  * @author alexandre.normand
  */
 public class IsReceiverOnThisPortRunner {
-  private static Logger LOGGER = LoggerFactory.getLogger(SerialTest.class);
-  public static final int DATA_BITS = 8;
-  public static final int STOP_BITS = 1;
-  public static final int NO_PARITY = 0;
-  public static final int FIRMWARE_BAUD_RATE = 0x9600;
+  private static Logger LOGGER = LoggerFactory.getLogger(IsReceiverOnThisPortRunner.class);
 
   private DataOutputFactory dataOutputFactory;
   private DataInputFactory dataInputFactory;
@@ -106,17 +104,17 @@ public class IsReceiverOnThisPortRunner {
 
     printLineStatus(serialPort.getLinesStatus());
     LOGGER.debug(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
-    serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
+    serialPort.setParams(DexcomG4Constants.FIRMWARE_BAUD_RATE, DexcomG4Constants.DATA_BITS,
+            DexcomG4Constants.STOP_BITS, DexcomG4Constants.NO_PARITY);
 
     byte[] request = new Ping(this.dataOutputFactory).asBytes();
-    LOGGER.debug(format("Writing [%d] bytes: [%s]", request.length, toHexString(request)));
+    LOGGER.debug(format("Ping with write of [%d] bytes: [%s]", request.length, toHexString(request)));
 
     boolean status = serialPort.writeBytes(request);
     LOGGER.info(format("Wrote success: %b", status));
 
-    // Trace seems to indicate that there's no response to a ping?
-//    EmptyResponse singleByteResponse = this.responseReader.read(EmptyResponse.class, serialPort);
-//    LOGGER.info(format("Received successful ACK response [%s]", singleByteResponse));
+    GenericResponse genericResponse = this.responseReader.read(GenericResponse.class, serialPort);
+    LOGGER.info(format("Received successful ACK response [%s]", toHexString(genericResponse.getPayload())));
     return true;
   }
 

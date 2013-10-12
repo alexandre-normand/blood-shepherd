@@ -6,7 +6,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import jssc.SerialPortException;
-import org.glukit.dexcom.sync.requests.ReadFirmwareHeader;
+import org.glukit.dexcom.sync.tasks.IsReceiverOnThisPortRunner;
 import org.slf4j.LoggerFactory;
 
 import javax.usb.UsbException;

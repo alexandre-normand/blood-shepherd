@@ -38,13 +38,17 @@ public abstract class BaseCommand implements Command {
       output.write(getSizeOfField());
       output.writeShort(getSize());
       output.write(getCommand().getId());
+      output.write(getContent());
       int contentSize = outputStream.size();
+
       output.writeShort(getCrc16(outputStream.toByteArray(), 0, contentSize));
       return outputStream.toByteArray();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }
+
+  protected abstract byte[] getContent();
 
   public abstract ReceiverCommand getCommand();
 
@@ -53,8 +57,6 @@ public abstract class BaseCommand implements Command {
   }
 
   public short getSize() {
-    return (short) (6 + getContentSize());
+    return (short) (6 + getContent().length);
   }
-
-  public abstract short getContentSize();
 }

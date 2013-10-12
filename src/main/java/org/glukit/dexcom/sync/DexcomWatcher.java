@@ -26,6 +26,7 @@ package org.glukit.dexcom.sync;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import jssc.SerialPort;
+import org.glukit.dexcom.sync.tasks.FetchNewDataRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
@@ -47,11 +48,15 @@ public class DexcomWatcher implements UsbServicesListener {
 
   private final DeviceFilter deviceFilter;
   private final ReceiverFinder receiverFinder;
+  private final FetchNewDataRunner fetchNewDataRunner;
 
   @Inject
-  public DexcomWatcher(DeviceFilter deviceFilter, ReceiverFinder receiverFinder) {
+  public DexcomWatcher(DeviceFilter deviceFilter,
+                       ReceiverFinder receiverFinder,
+                       FetchNewDataRunner fetchNewDataRunner) {
     this.deviceFilter = deviceFilter;
     this.receiverFinder = receiverFinder;
+    this.fetchNewDataRunner = fetchNewDataRunner;
   }
 
   @Override
@@ -65,9 +70,9 @@ public class DexcomWatcher implements UsbServicesListener {
         LOGGER.info(message);
 
         String receiverPort = this.receiverFinder.findReceiverPort();
-        DataFetcher fetcher = new DataFetcher(new SerialPort(receiverPort));
+
         // TODO: store time of last sync
-        fetcher.fetchData(Instant.now());
+        this.fetchNewDataRunner.fetchData(new SerialPort(receiverPort), Instant.now());
       } catch (Exception e) {
         Throwables.propagate(e);
       }

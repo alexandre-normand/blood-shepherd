@@ -24,6 +24,7 @@
 package org.glukit.dexcom.sync.responses;
 
 import com.google.common.base.Throwables;
+import org.glukit.dexcom.sync.DataInputFactory;
 
 import java.io.UnsupportedEncodingException;
 
@@ -33,19 +34,19 @@ import java.io.UnsupportedEncodingException;
  * @author alexandre.normand
  */
 public class GenericResponse implements Response {
+  protected final DataInputFactory dataInputFactory;
+  private byte[] payload = new byte[0];
 
-  private String firmware;
+  public GenericResponse(DataInputFactory dataInputFactory) {
+    this.dataInputFactory = dataInputFactory;
+  }
 
   @Override
   public void fromBytes(byte[] responseAsBytes) {
-    try {
-      this.firmware = new String(responseAsBytes, "UTF8");
-    } catch (UnsupportedEncodingException e) {
-      throw Throwables.propagate(e);
-    }
+    this.payload = responseAsBytes;
   }
 
-  public String getFirmware() {
-    return firmware;
+  public byte[] getPayload() {
+    return payload;
   }
 }

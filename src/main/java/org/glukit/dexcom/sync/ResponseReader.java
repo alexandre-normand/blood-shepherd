@@ -61,14 +61,22 @@ public class ResponseReader {
 
   public <T extends Response> T read(Class<T> type, SerialPort serialPort) {
     try {
-      T response = type.newInstance();
+      T response = type.getConstructor(DataInputFactory.class).newInstance(this.dataInputFactory);
       byte[] header = serialPort.readBytes(HEADER_SIZE);
       LOGGER.debug(format("Read header from port: %s", toHexString(header)));
       ResponseHeader responseHeader = readHeader(header);
 
-      byte[] payload = serialPort.readBytes(responseHeader.getPacketSize() - TRAILER_SIZE);
-      LOGGER.debug(format("Read payload from port: %s", toHexString(payload)));
-      response.fromBytes(payload);
+      int expectedPayloadSize = responseHeader.getPacketSize() - (HEADER_SIZE + TRAILER_SIZE);
+      LOGGER.debug(format("Expected payload of [%d] bytes", expectedPayloadSize));
+
+      byte[] payload = new byte[0];
+      if (expectedPayloadSize > 0) {
+        payload = serialPort.readBytes(expectedPayloadSize);
+        LOGGER.debug(format("Read payload from port: %s", toHexString(payload)));
+        response.fromBytes(payload);
+      } else {
+        LOGGER.debug("No payload expected, skipping to trailer...");
+      }
 
       byte[] crc16 = serialPort.readBytes(TRAILER_SIZE);
       LOGGER.debug(format("Read crc16 from port: %s", toHexString(crc16)));
@@ -87,11 +95,12 @@ public class ResponseReader {
     int computedCrc16 = getCrc16(packet, 0, packet.length - TRAILER_SIZE);
 
     if (crc != computedCrc16) {
-      throw new IllegalStateException(format("Invalid crc, expected [%d], received [%d]", computedCrc16, crc));
+      throw new IllegalStateException(format("Invalid crc, expected [%s], received [%s]",
+              Integer.toHexString(computedCrc16), Integer.toHexString(crc)));
     }
   }
 
-  public ResponseHeader readHeader(byte[] headerBytes) {
+  private ResponseHeader readHeader(byte[] headerBytes) {
     try {
       DataInput input = this.dataInputFactory.create(new ByteArrayInputStream(headerBytes));
       byte sof = input.readByte();
@@ -100,9 +109,10 @@ public class ResponseReader {
                 toHexString(new byte[]{sof})));
       }
 
+      int packetSize = input.readUnsignedShort();
+
       byte commandId = input.readByte();
       ReceiverCommand command = ReceiverCommand.fromId(commandId);
-      short packetSize = input.readShort();
 
       return new ResponseHeader(command, packetSize);
     } catch (IOException e) {
@@ -112,9 +122,9 @@ public class ResponseReader {
 
   private static class ResponseHeader {
     ReceiverCommand command;
-    short packetSize;
+    int packetSize;
 
-    private ResponseHeader(ReceiverCommand command, short packetSize) {
+    private ResponseHeader(ReceiverCommand command, int packetSize) {
       this.command = command;
       this.packetSize = packetSize;
     }
@@ -123,7 +133,7 @@ public class ResponseReader {
       return command;
     }
 
-    private short getPacketSize() {
+    private int getPacketSize() {
       return packetSize;
     }
   }

@@ -21,40 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.requests;
 
-import com.google.inject.Inject;
-import jssc.SerialPortList;
-import org.glukit.dexcom.sync.tasks.IsReceiverOnThisPortRunner;
-
-import java.util.regex.Pattern;
+import org.glukit.dexcom.sync.DataOutputFactory;
+import org.glukit.dexcom.sync.RecordType;
 
 /**
- * Finds the {@link jssc.SerialPort} for the Dexcom receiver
+ * Read the database page range for {@link RecordType#EGVData} (Glucose Reads)
  * @author alexandre.normand
  */
-public class ReceiverFinder {
-  public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
-  private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
-
-  @Inject
-  public ReceiverFinder(IsReceiverOnThisPortRunner isReceiverOnThisPortRunner) {
-    this.isReceiverOnThisPortRunner = isReceiverOnThisPortRunner;
+public class ReadGlucoseReadDatabasePageRange extends ReadDatabasePageRange {
+  public ReadGlucoseReadDatabasePageRange(DataOutputFactory dataOutputFactory) {
+    super(dataOutputFactory);
   }
 
-  public String findReceiverPort() {
-    String[] portNames = SerialPortList.getPortNames(DEVICE_FILTER);
-    if (portNames == null || portNames.length == 0) {
-      throw new IllegalStateException("Receiver serial port can't be found");
-    }
-
-    for (String port : portNames) {
-      if (this.isReceiverOnThisPortRunner.isReceiver(port)) {
-        return port;
-      }
-    }
-
-    throw new IllegalStateException("Found some matching devices but none of them identified as the dexcom receiver. " +
-            "Maybe another application is holding the port?");
+  @Override
+  protected RecordType getRecordType() {
+    return RecordType.EGVData;
   }
 }

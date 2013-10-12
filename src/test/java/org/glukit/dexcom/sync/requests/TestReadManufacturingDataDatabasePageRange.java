@@ -21,40 +21,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.requests;
 
-import com.google.inject.Inject;
-import jssc.SerialPortList;
-import org.glukit.dexcom.sync.tasks.IsReceiverOnThisPortRunner;
+import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
+import org.junit.Test;
 
-import java.util.regex.Pattern;
+import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * Finds the {@link jssc.SerialPort} for the Dexcom receiver
+ * Unit test of {@link ReadManufacturingDataDatabasePageRange}
+ *
  * @author alexandre.normand
  */
-public class ReceiverFinder {
-  public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
-  private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
-
-  @Inject
-  public ReceiverFinder(IsReceiverOnThisPortRunner isReceiverOnThisPortRunner) {
-    this.isReceiverOnThisPortRunner = isReceiverOnThisPortRunner;
-  }
-
-  public String findReceiverPort() {
-    String[] portNames = SerialPortList.getPortNames(DEVICE_FILTER);
-    if (portNames == null || portNames.length == 0) {
-      throw new IllegalStateException("Receiver serial port can't be found");
-    }
-
-    for (String port : portNames) {
-      if (this.isReceiverOnThisPortRunner.isReceiver(port)) {
-        return port;
-      }
-    }
-
-    throw new IllegalStateException("Found some matching devices but none of them identified as the dexcom receiver. " +
-            "Maybe another application is holding the port?");
+public class TestReadManufacturingDataDatabasePageRange {
+  @Test
+  public void readManufacturingDataDatabasePageRangeShouldMatchExample() {
+    ReadManufacturingDataDatabasePageRange readManufacturingDataDatabasePageRange =
+            new ReadManufacturingDataDatabasePageRange(new LittleEndianDataOutputFactory());
+    assertThat(readManufacturingDataDatabasePageRange.asBytes(), equalTo(fromHexString("01 07 00 10 00 0F F8")));
   }
 }

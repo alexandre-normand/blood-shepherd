@@ -53,7 +53,7 @@ public enum ReceiverCommand {
   ReadDatabasePageHeader((byte) 0x12),
   ReadDatabasePageRange((byte) 0x10),
   ReadDatabasePages((byte) 0x11),
-  ReadDatabaseParitionInfo((byte) 0x0F),
+  ReadDatabasePartitionInfo((byte) 0x0F),
   ReadDeviceMode((byte) 0x2b),
   ReadDisplayTimeOffset((byte) 0x1d),
   ReadEnableSetUpWizardFlag((byte) 0x37),

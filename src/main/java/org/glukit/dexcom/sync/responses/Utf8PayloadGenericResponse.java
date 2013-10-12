@@ -21,34 +21,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.responses;
 
-import jssc.SerialPort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.threeten.bp.Instant;
+import com.google.common.base.Throwables;
+import org.glukit.dexcom.sync.DataInputFactory;
 
-import java.util.Map;
-
-import static java.lang.String.format;
+import java.io.UnsupportedEncodingException;
 
 /**
- * Fetches the new data since last sync.
+ * Utf8PayloadGenericResponse
+ *
  * @author alexandre.normand
  */
-public class DataFetcher {
-  private static Logger LOGGER = LoggerFactory.getLogger(DataFetcher.class);
+public class Utf8PayloadGenericResponse extends GenericResponse {
 
-  private SerialPort serialPort;
-
-  public DataFetcher(SerialPort serialPort) {
-    this.serialPort = serialPort;
+  public Utf8PayloadGenericResponse(DataInputFactory dataInputFactory) {
+    super(dataInputFactory);
   }
 
-  public Map<String, String> fetchData(Instant since) {
-    LOGGER.debug(format("This will eventually get the data since %s", since.toString()));
-    // TODO, actually get data
-
-    return null;
+  public String asString() {
+    try {
+      return new String(getPayload(), "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }

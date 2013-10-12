@@ -21,19 +21,53 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync;
 
-import org.glukit.dexcom.sync.DataInputFactory;
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 /**
- * Empty (6 bytes) response
+ * Type of record
+ *
  * @author alexandre.normand
  */
-public class EmptyResponse implements Response {
+public enum RecordType {
+  Aberration((byte) 0x06),
+  CalSet((byte) 0x05),
+  EGVData((byte) 0x04),
+  FirmwareParameterData((byte) 0x01),
+  InsertionTime((byte) 0x07),
+  ManufacturingData((byte) 0x00),
+  MaxValue((byte) 0x0D),
+  MeterData((byte) 0x0A),
+  PCSoftwareParameter((byte) 0x02),
+  ReceiverErrorData((byte) 0x09),
+  ReceiverLogData((byte) 0x08),
+  SensorData((byte) 0x03),
+  UserEventData((byte) 0x0B),
+  UserSettingData((byte) 0x0C);
 
-  @Override
-  public void fromBytes(byte[] responseAsBytes) {
-    // No content
-  }
+  private byte id;
+    private static Map<Byte, RecordType> mappings;
 
+    private RecordType(byte id) {
+      this.id = id;
+      addMapping(id, this);
+    }
+
+    private static void addMapping(byte id, RecordType recordType) {
+      if (mappings == null) {
+        mappings = newHashMap();
+      }
+      mappings.put(id, recordType);
+    }
+
+    public static RecordType fromId(byte id) {
+      return mappings.get(id);
+    }
+
+    public byte getId() {
+      return id;
+    }
 }

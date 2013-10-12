@@ -23,28 +23,24 @@
 
 package org.glukit.dexcom.sync.requests;
 
-import java.nio.ByteBuffer;
+import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
+import org.junit.Test;
+
+import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * GetPageRange request command.
+ * Unit test of {@link ReadGlucoseReadDatabasePageRange}
+ *
  * @author alexandre.normand
  */
-public class GetPageRange implements Command {
-  @Override
-  public ByteBuffer asByteBuffer() {
-    byte[] pageRangeRequest = asBytes();
-    return ByteBuffer.wrap(pageRangeRequest);
-  }
+public class TestReadGlucoseReadDatabasePageRange {
 
-  @Override
-  public byte[] asBytes() {
-    byte[] pageRangeRequest = new byte[7];
-    pageRangeRequest[0] = 0x01;
-    pageRangeRequest[1] = 0x07;
-    pageRangeRequest[3] = 0x10;
-    pageRangeRequest[4] = 0x04;
-    pageRangeRequest[5] = (byte) 0x8b;
-    pageRangeRequest[6] = (byte) 0xb8;
-    return pageRangeRequest;
+  @Test
+  public void readGlucoseReadDatabasePageRangeShouldMatchExample() {
+    ReadGlucoseReadDatabasePageRange readGlucoseReadDatabasePageRange =
+            new ReadGlucoseReadDatabasePageRange(new LittleEndianDataOutputFactory());
+    assertThat(readGlucoseReadDatabasePageRange.asBytes(), equalTo(fromHexString("01 07 00 10 04 8b b8")));
   }
 }
