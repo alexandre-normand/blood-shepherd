@@ -21,49 +21,53 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync.model;
 
-import com.google.common.base.Throwables;
-import com.google.common.primitives.UnsignedInts;
-import org.glukit.dexcom.sync.DataInputFactory;
-import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
+import java.util.Map;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.IOException;
+import static com.google.common.collect.Maps.newHashMap;
 
 /**
- * PageRangeResponse
+ * Type of record
  *
  * @author alexandre.normand
  */
-public class PageRangeResponse extends GenericResponse {
+public enum RecordType {
+  Aberration((byte) 0x06),
+  CalSet((byte) 0x05),
+  EGVData((byte) 0x04),
+  FirmwareParameterData((byte) 0x01),
+  InsertionTime((byte) 0x07),
+  ManufacturingData((byte) 0x00),
+  MaxValue((byte) 0x0D),
+  MeterData((byte) 0x0A),
+  PCSoftwareParameter((byte) 0x02),
+  ReceiverErrorData((byte) 0x09),
+  ReceiverLogData((byte) 0x08),
+  SensorData((byte) 0x03),
+  UserEventData((byte) 0x0B),
+  UserSettingData((byte) 0x0C);
 
-  private long firstPage;
-  private long lastPage;
+  private byte id;
+    private static Map<Byte, RecordType> mappings;
 
-  public PageRangeResponse(DataInputFactory dataInputFactory) {
-    super(dataInputFactory);
-  }
-
-  @Override
-  public void fromBytes(byte[] responseAsBytes) {
-    super.fromBytes(responseAsBytes);
-    try {
-      DataInput dataInput = dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
-      this.firstPage = UnsignedInts.toLong(dataInput.readInt());
-      this.lastPage = UnsignedInts.toLong(dataInput.readInt());
-
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
+    private RecordType(byte id) {
+      this.id = id;
+      addMapping(id, this);
     }
-  }
 
-  public long getFirstPage() {
-    return this.firstPage;
-  }
+    private static void addMapping(byte id, RecordType recordType) {
+      if (mappings == null) {
+        mappings = newHashMap();
+      }
+      mappings.put(id, recordType);
+    }
 
-  public long getLastPage() {
-    return this.lastPage;
-  }
+    public static RecordType fromId(byte id) {
+      return mappings.get(id);
+    }
+
+    public byte getId() {
+      return id;
+    }
 }

@@ -27,6 +27,7 @@ import com.google.common.base.Throwables;
 import com.google.common.primitives.Bytes;
 import com.google.inject.Inject;
 import jssc.SerialPort;
+import org.glukit.dexcom.sync.model.ReceiverCommand;
 import org.glukit.dexcom.sync.responses.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ import java.io.DataInput;
 import java.io.IOException;
 
 import static java.lang.String.format;
-import static org.glukit.dexcom.sync.DecodingUtils.CRC16_SIZE;
 import static org.glukit.dexcom.sync.DecodingUtils.getCrc16;
 import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
 

@@ -21,49 +21,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync;
 
-import com.google.common.base.Throwables;
-import com.google.common.primitives.UnsignedInts;
-import org.glukit.dexcom.sync.DataInputFactory;
 import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
+import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.IOException;
+import java.util.Iterator;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * PageRangeResponse
+ * Unit test of {@link DatabasePagesPlanner}
  *
  * @author alexandre.normand
  */
-public class PageRangeResponse extends GenericResponse {
+public class TestDatabasePagesIterator {
 
-  private long firstPage;
-  private long lastPage;
+  @Test
+  public void iteratorReturnsSingleElementOf1() throws Exception {
+    DatabasePagesPlanner planner = new DatabasePagesPlanner(146, 147);
 
-  public PageRangeResponse(DataInputFactory dataInputFactory) {
-    super(dataInputFactory);
-  }
+    Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
+    assertThat(iterator.hasNext(), is(true));
+    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(146, (byte) 1)));
 
-  @Override
-  public void fromBytes(byte[] responseAsBytes) {
-    super.fromBytes(responseAsBytes);
-    try {
-      DataInput dataInput = dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
-      this.firstPage = UnsignedInts.toLong(dataInput.readInt());
-      this.lastPage = UnsignedInts.toLong(dataInput.readInt());
-
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  public long getFirstPage() {
-    return this.firstPage;
-  }
-
-  public long getLastPage() {
-    return this.lastPage;
   }
 }

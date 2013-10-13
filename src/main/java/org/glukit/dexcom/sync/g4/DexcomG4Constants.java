@@ -21,53 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
-
-import java.util.Map;
-
-import static com.google.common.collect.Maps.newHashMap;
+package org.glukit.dexcom.sync.g4;
 
 /**
- * Type of record
- *
+ * Constants associated with the Dexcom G4 Platinum receiver
  * @author alexandre.normand
  */
-public enum RecordType {
-  Aberration((byte) 0x06),
-  CalSet((byte) 0x05),
-  EGVData((byte) 0x04),
-  FirmwareParameterData((byte) 0x01),
-  InsertionTime((byte) 0x07),
-  ManufacturingData((byte) 0x00),
-  MaxValue((byte) 0x0D),
-  MeterData((byte) 0x0A),
-  PCSoftwareParameter((byte) 0x02),
-  ReceiverErrorData((byte) 0x09),
-  ReceiverLogData((byte) 0x08),
-  SensorData((byte) 0x03),
-  UserEventData((byte) 0x0B),
-  UserSettingData((byte) 0x0C);
+public class DexcomG4Constants {
 
-  private byte id;
-    private static Map<Byte, RecordType> mappings;
-
-    private RecordType(byte id) {
-      this.id = id;
-      addMapping(id, this);
-    }
-
-    private static void addMapping(byte id, RecordType recordType) {
-      if (mappings == null) {
-        mappings = newHashMap();
-      }
-      mappings.put(id, recordType);
-    }
-
-    public static RecordType fromId(byte id) {
-      return mappings.get(id);
-    }
-
-    public byte getId() {
-      return id;
-    }
+  public static final int DATA_BITS = 8;
+  public static final int STOP_BITS = 1;
+  public static final int NO_PARITY = 0;
+  public static final int FIRMWARE_BAUD_RATE = 0x9600;
 }

@@ -26,7 +26,7 @@ package org.glukit.dexcom.sync;
 import com.google.common.base.Throwables;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
+import org.glukit.dexcom.sync.g4.DexcomG4Filter;
 
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;

@@ -21,16 +21,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.g4;
+
+import org.glukit.dexcom.sync.DeviceFilter;
+
+import javax.usb.UsbDeviceDescriptor;
 
 /**
- * Constants associated with the Dexcom G4 Platinum receiver
+ * {@link org.glukit.dexcom.sync.DeviceFilter} for the Dexcom G4 Platinum.
  * @author alexandre.normand
  */
-public class DexcomG4Constants {
+public class DexcomG4Filter implements DeviceFilter {
+  public static short VENDOR_ID = 8867;
+  public static short PRODUCT_ID = 71;
 
-  public static final int DATA_BITS = 8;
-  public static final int STOP_BITS = 1;
-  public static final int NO_PARITY = 0;
-  public static final int FIRMWARE_BAUD_RATE = 0x9600;
+  @Override
+  public boolean isHighlander(UsbDeviceDescriptor usbDescriptor) {
+    return usbDescriptor.idVendor() == VENDOR_ID && usbDescriptor.idProduct() == PRODUCT_ID;
+  }
 }

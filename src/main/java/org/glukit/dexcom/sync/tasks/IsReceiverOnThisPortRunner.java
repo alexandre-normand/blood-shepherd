@@ -29,6 +29,7 @@ import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortTimeoutException;
 import org.glukit.dexcom.sync.*;
+import org.glukit.dexcom.sync.g4.DexcomG4Constants;
 import org.glukit.dexcom.sync.requests.Ping;
 import org.glukit.dexcom.sync.responses.GenericResponse;
 import org.slf4j.Logger;

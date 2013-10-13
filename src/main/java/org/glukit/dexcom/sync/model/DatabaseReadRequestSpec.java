@@ -21,49 +21,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync.model;
 
-import com.google.common.base.Throwables;
-import com.google.common.primitives.UnsignedInts;
-import org.glukit.dexcom.sync.DataInputFactory;
-import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
+import com.google.common.base.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.IOException;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * PageRangeResponse
- *
+ * Spec of a single command for database pages ({@link org.glukit.dexcom.sync.requests.ReadDatabasePagesCommand}
  * @author alexandre.normand
  */
-public class PageRangeResponse extends GenericResponse {
+@EqualsAndHashCode
+@ToString
+public class DatabaseReadRequestSpec {
+  public static final byte MAX_PAGES_PER_COMMAND = 4;
+  private long startPage;
+  private byte numberOfPages;
 
-  private long firstPage;
-  private long lastPage;
-
-  public PageRangeResponse(DataInputFactory dataInputFactory) {
-    super(dataInputFactory);
+  public DatabaseReadRequestSpec(long startPage, byte numberOfPages) {
+    checkArgument(numberOfPages > 0 && numberOfPages <= MAX_PAGES_PER_COMMAND, "Command is limited to [%s] pages or " +
+                "less, given invalid value of [%s]", MAX_PAGES_PER_COMMAND, numberOfPages);
+    this.startPage = startPage;
+    this.numberOfPages = numberOfPages;
   }
 
-  @Override
-  public void fromBytes(byte[] responseAsBytes) {
-    super.fromBytes(responseAsBytes);
-    try {
-      DataInput dataInput = dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
-      this.firstPage = UnsignedInts.toLong(dataInput.readInt());
-      this.lastPage = UnsignedInts.toLong(dataInput.readInt());
-
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+  public long getStartPage() {
+    return startPage;
   }
 
-  public long getFirstPage() {
-    return this.firstPage;
-  }
-
-  public long getLastPage() {
-    return this.lastPage;
+  public byte getNumberOfPages() {
+    return numberOfPages;
   }
 }

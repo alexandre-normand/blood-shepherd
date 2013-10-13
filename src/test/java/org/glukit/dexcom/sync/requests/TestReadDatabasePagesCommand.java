@@ -21,20 +21,26 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.dexcom.sync.requests;
 
-import javax.usb.UsbDeviceDescriptor;
+import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
+import org.junit.Test;
+
+import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.glukit.dexcom.sync.model.RecordType.ManufacturingData;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * {@link DeviceFilter} for the Dexcom G4 Platinum.
+ * Unit test of {@link ReadDatabasePagesCommand}
+ *
  * @author alexandre.normand
  */
-public class DexcomG4Filter implements DeviceFilter {
-  public static short VENDOR_ID = 8867;
-  public static short PRODUCT_ID = 71;
-
-  @Override
-  public boolean isHighlander(UsbDeviceDescriptor usbDescriptor) {
-    return usbDescriptor.idVendor() == VENDOR_ID && usbDescriptor.idProduct() == PRODUCT_ID;
+public class TestReadDatabasePagesCommand {
+  @Test
+  public void readDatabasePagesShouldMatchExample() throws Exception {
+    ReadDatabasePagesCommand readDatabasePagesCommand =
+            new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), ManufacturingData, 0L, (byte) 1);
+    assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 00 00 00 00 00 01 6E 45")));
   }
 }

@@ -1,7 +1,7 @@
 package org.glukit.dexcom.sync.requests;
 
 import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
+import org.glukit.dexcom.sync.model.ReceiverCommand;
 
 /**
  * This is supposed to be the command that we send to check if the serial port queried is the firmware/receiver.

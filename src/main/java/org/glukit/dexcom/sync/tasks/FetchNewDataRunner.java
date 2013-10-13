@@ -28,10 +28,8 @@ import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.glukit.dexcom.sync.*;
-import org.glukit.dexcom.sync.requests.ReadDatabasePageRange;
-import org.glukit.dexcom.sync.requests.ReadFirmwareHeader;
-import org.glukit.dexcom.sync.requests.ReadGlucoseReadDatabasePageRange;
-import org.glukit.dexcom.sync.requests.ReadManufacturingDataDatabasePageRange;
+import org.glukit.dexcom.sync.requests.*;
+import org.glukit.dexcom.sync.responses.GenericResponse;
 import org.glukit.dexcom.sync.responses.PageRangeResponse;
 import org.glukit.dexcom.sync.responses.Utf8PayloadGenericResponse;
 import org.slf4j.Logger;
@@ -41,7 +39,9 @@ import org.threeten.bp.Instant;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static org.glukit.dexcom.sync.DexcomG4Constants.*;
+import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
+import static org.glukit.dexcom.sync.g4.DexcomG4Constants.*;
+import static org.glukit.dexcom.sync.model.RecordType.EGVData;
 
 /**
  * Fetches the new data since last sync.
@@ -77,40 +77,66 @@ public class FetchNewDataRunner {
 
       LOGGER.info(format("This will eventually get the data since %s", since.toString()));
 
-      ReadFirmwareHeader readFirmwareHeader = new ReadFirmwareHeader(this.dataOutputFactory);
-      byte[] packet = readFirmwareHeader.asBytes();
-      LOGGER.info(format("Sending read firmware header: %s", DecodingUtils.toHexString(packet)));
+      Utf8PayloadGenericResponse firmwareHeader = readFirmwareHeader(serialPort);
+      PageRangeResponse manufacturingDataPageRange = readManufacturingDataPageRange(serialPort);
+      PageRangeResponse glucosePageRange = readGlucosePageRange(serialPort);
+
+      ReadDatabasePagesCommand readDatabasePagesCommand =
+              new ReadDatabasePagesCommand(this.dataOutputFactory, EGVData, glucosePageRange.getFirstPage(),
+                      (byte) (6));
+      byte[] packet = readDatabasePagesCommand.asBytes();
+      LOGGER.info(format("Sending read database pages for glucose reads: %s", toHexString(packet)));
       serialPort.writeBytes(packet);
 
-      Utf8PayloadGenericResponse utf8PayloadGenericResponse =
-              this.responseReader.read(Utf8PayloadGenericResponse.class, serialPort);
-      LOGGER.info(format("Receiver plugged with firmware: %s", utf8PayloadGenericResponse.asString()));
-
-      ReadDatabasePageRange readDatabasePageRange = new ReadManufacturingDataDatabasePageRange(this.dataOutputFactory);
-      packet = readDatabasePageRange.asBytes();
-      LOGGER.info(format("Sending read database page range for manufacturing data: %s",
-              DecodingUtils.toHexString(packet)));
-      serialPort.writeBytes(packet);
-
-      PageRangeResponse pageRangeResponse =
-              this.responseReader.read(PageRangeResponse.class, serialPort);
-      LOGGER.info(format("Page range for manufacturing data: [%d] to [%d]", pageRangeResponse.getFirstPage(),
-              pageRangeResponse.getLastPage()));
-
-      ReadGlucoseReadDatabasePageRange readGlucoseReadDatabasePageRange =
-              new ReadGlucoseReadDatabasePageRange(this.dataOutputFactory);
-      packet = readGlucoseReadDatabasePageRange.asBytes();
-      LOGGER.info(format("Sending read database page range for glucose reads: %s", DecodingUtils.toHexString(packet)));
-      serialPort.writeBytes(packet);
-
-      PageRangeResponse glucosePageRangeResponse =
-              this.responseReader.read(PageRangeResponse.class, serialPort);
-      LOGGER.info(format("Page range for glucose reads: [%d] to [%d]", glucosePageRangeResponse.getFirstPage(),
-              glucosePageRangeResponse.getLastPage()));
-
+      GenericResponse genericResponse =
+              this.responseReader.read(GenericResponse.class, serialPort);
+      LOGGER.info(format("Response for database pages of glucose reads: [%s]",
+              toHexString(genericResponse.getPayload())));
     } catch (SerialPortException e) {
       throw Throwables.propagate(e);
     }
     return null;
+  }
+
+  private Utf8PayloadGenericResponse readFirmwareHeader(SerialPort serialPort) throws SerialPortException {
+    ReadFirmwareHeader readFirmwareHeader = new ReadFirmwareHeader(this.dataOutputFactory);
+    byte[] packet = readFirmwareHeader.asBytes();
+    LOGGER.info(format("Sending read firmware header: %s", toHexString(packet)));
+    serialPort.writeBytes(packet);
+
+    Utf8PayloadGenericResponse utf8PayloadGenericResponse =
+            this.responseReader.read(Utf8PayloadGenericResponse.class, serialPort);
+    LOGGER.info(format("Receiver plugged with firmware: %s", utf8PayloadGenericResponse.asString()));
+    return utf8PayloadGenericResponse;
+  }
+
+  private PageRangeResponse readManufacturingDataPageRange(SerialPort serialPort) throws SerialPortException {
+    ReadDatabasePageRange readDatabasePageRange = new ReadManufacturingDataDatabasePageRange(this.dataOutputFactory);
+    byte[] packet = readDatabasePageRange.asBytes();
+    LOGGER.info(format("Sending read database page range for manufacturing data: %s",
+            toHexString(packet)));
+    serialPort.writeBytes(packet);
+
+    PageRangeResponse pageRangeResponse =
+            this.responseReader.read(PageRangeResponse.class, serialPort);
+    LOGGER.info(format("Page range for manufacturing data: [%d] to [%d]", pageRangeResponse.getFirstPage(),
+            pageRangeResponse.getLastPage()));
+
+    return pageRangeResponse;
+  }
+
+  private PageRangeResponse readGlucosePageRange(SerialPort serialPort) throws SerialPortException {
+    ReadGlucoseReadDatabasePageRange readGlucoseReadDatabasePageRange =
+            new ReadGlucoseReadDatabasePageRange(this.dataOutputFactory);
+    byte[] packet = readGlucoseReadDatabasePageRange.asBytes();
+    LOGGER.info(format("Sending read database page range for glucose reads: %s", toHexString(packet)));
+    serialPort.writeBytes(packet);
+
+    PageRangeResponse glucosePageRangeResponse =
+            this.responseReader.read(PageRangeResponse.class, serialPort);
+    LOGGER.info(format("Page range for glucose reads: [%d] to [%d]", glucosePageRangeResponse.getFirstPage(),
+            glucosePageRangeResponse.getLastPage()));
+
+    return glucosePageRangeResponse;
   }
 }

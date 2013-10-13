@@ -3,7 +3,7 @@ package org.glukit.dexcom.sync.requests;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
+import org.glukit.dexcom.sync.model.ReceiverCommand;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -17,7 +17,7 @@ import static org.glukit.dexcom.sync.DecodingUtils.getCrc16;
  * @author alexandre.normand
  */
 public abstract class BaseCommand implements Command {
-  private DataOutputFactory dataOutputFactory;
+  protected DataOutputFactory dataOutputFactory;
 
   @Inject
   protected BaseCommand(DataOutputFactory dataOutputFactory) {

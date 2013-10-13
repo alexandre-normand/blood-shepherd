@@ -21,49 +21,46 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync.responses;
+package org.glukit.dexcom.sync;
 
-import com.google.common.base.Throwables;
+import com.google.common.primitives.UnsignedBytes;
 import com.google.common.primitives.UnsignedInts;
-import org.glukit.dexcom.sync.DataInputFactory;
 import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.glukit.dexcom.sync.model.DatabaseReadRequestSpec.MAX_PAGES_PER_COMMAND;
 
 /**
- * PageRangeResponse
+ * Iterator to go through all pages of a database. This uses the data from a
+ * {@link org.glukit.dexcom.sync.responses.PageRangeResponse} and returns an iterator that will
+ * go over all {@link DatabaseReadRequestSpec}s required to read all of it.
  *
  * @author alexandre.normand
  */
-public class PageRangeResponse extends GenericResponse {
-
+public class DatabasePagesPlanner implements Iterable<DatabaseReadRequestSpec> {
   private long firstPage;
   private long lastPage;
 
-  public PageRangeResponse(DataInputFactory dataInputFactory) {
-    super(dataInputFactory);
+  public DatabasePagesPlanner(long firstPage, long lastPage) {
+    this.firstPage = firstPage;
+    this.lastPage = lastPage;
   }
 
   @Override
-  public void fromBytes(byte[] responseAsBytes) {
-    super.fromBytes(responseAsBytes);
-    try {
-      DataInput dataInput = dataInputFactory.create(new ByteArrayInputStream(responseAsBytes));
-      this.firstPage = UnsignedInts.toLong(dataInput.readInt());
-      this.lastPage = UnsignedInts.toLong(dataInput.readInt());
+  public Iterator<DatabaseReadRequestSpec> iterator() {
+    List<DatabaseReadRequestSpec> chunks = buildListOfChunks();
+    return chunks.iterator();
+  }
 
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
+  private List<DatabaseReadRequestSpec> buildListOfChunks() {
+    List<DatabaseReadRequestSpec> specs = newArrayList();
+    for (long chunkStart = this.firstPage; chunkStart <= lastPage; chunkStart+= MAX_PAGES_PER_COMMAND) {
+      specs.add(new DatabaseReadRequestSpec(chunkStart,
+              UnsignedBytes.min((byte) (lastPage - chunkStart), MAX_PAGES_PER_COMMAND)));
     }
-  }
-
-  public long getFirstPage() {
-    return this.firstPage;
-  }
-
-  public long getLastPage() {
-    return this.lastPage;
+    return specs;
   }
 }

@@ -24,7 +24,7 @@
 package org.glukit.dexcom.sync.requests;
 
 import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
+import org.glukit.dexcom.sync.model.ReceiverCommand;
 
 /**
  * ReadFirmwareHeader command

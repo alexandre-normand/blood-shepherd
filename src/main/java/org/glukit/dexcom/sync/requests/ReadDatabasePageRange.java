@@ -24,8 +24,8 @@
 package org.glukit.dexcom.sync.requests;
 
 import org.glukit.dexcom.sync.DataOutputFactory;
-import org.glukit.dexcom.sync.ReceiverCommand;
-import org.glukit.dexcom.sync.RecordType;
+import org.glukit.dexcom.sync.model.ReceiverCommand;
+import org.glukit.dexcom.sync.model.RecordType;
 
 /**
  * ReadDatabasePageRange request command.
