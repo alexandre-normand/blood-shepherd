@@ -28,24 +28,45 @@ import org.junit.Test;
 
 import java.util.Iterator;
 
+import static org.glukit.dexcom.sync.model.DatabaseReadRequestSpec.MAX_PAGES_PER_COMMAND;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Unit test of {@link DatabasePagesPlanner}
+ * Unit test of {@link DatabasePagesBuilder}
  *
  * @author alexandre.normand
  */
 public class TestDatabasePagesIterator {
 
   @Test
-  public void iteratorReturnsSingleElementOf1() throws Exception {
-    DatabasePagesPlanner planner = new DatabasePagesPlanner(146, 147);
+  public void firstAndLastPageTheSameShouldReturnSingleElementOf1Page() throws Exception {
+    DatabasePagesBuilder planner = new DatabasePagesBuilder(147, 147);
 
     Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
     assertThat(iterator.hasNext(), is(true));
-    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(146, (byte) 1)));
+    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(147, (byte) 1)));
 
+  }
+
+  @Test
+  public void firstAndLastPageConsecutiveShouldSingleElementOf2Pages() throws Exception {
+    DatabasePagesBuilder planner = new DatabasePagesBuilder(146, 147);
+
+    Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
+    assertThat(iterator.hasNext(), is(true));
+    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(146, (byte) 2)));
+  }
+
+  @Test
+  public void twoElementsWithFirstOneOfFourPages() throws Exception {
+    DatabasePagesBuilder planner = new DatabasePagesBuilder(140, 144);
+
+    Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
+    assertThat(iterator.hasNext(), is(true));
+    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(140, MAX_PAGES_PER_COMMAND)));
+    assertThat(iterator.hasNext(), is(true));
+    assertThat(iterator.next(), equalTo(new DatabaseReadRequestSpec(144, (byte) 1)));
   }
 }

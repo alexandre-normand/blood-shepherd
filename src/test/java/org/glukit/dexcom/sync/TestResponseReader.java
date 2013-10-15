@@ -24,9 +24,7 @@
 package org.glukit.dexcom.sync;
 
 import jssc.SerialPort;
-import org.glukit.dexcom.sync.responses.GenericResponse;
-import org.glukit.dexcom.sync.responses.PageRangeResponse;
-import org.glukit.dexcom.sync.responses.Utf8PayloadGenericResponse;
+import org.glukit.dexcom.sync.responses.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -65,20 +63,11 @@ public class TestResponseReader {
     assertThat(genericResponse.asString(), is("<FirmwareHeader SchemaVersion='1' ApiVersion='2.2.0.0' TestApiVersion='2.4.0.0' ProductId='G4Receiver' ProductName='Dexcom G4 Receiver' SoftwareNumber='SW10050' FirmwareVersion='2.0.1.104' PortVersion='4.6.4.45' RFVersion='1.0.0.27' DexBootVersion='3'/>"));
   }
 
-//  @Test
-//  public void readFirmwareHeaderResponseShouldSucceed() throws Exception {
-//    when(serialPort.readBytes(anyInt())).thenReturn(fromHexString("01 06 00 01")).thenReturn(fromHexString("35 d4 01 03 01 01 3c 46 69 72 6d 77 61 72 65 48 65 61 64 65 72 20 53 63 68 65 6d 61 56 65 72 73 69 6f 6e 3d 27 31 27 20 41 70 69 56 65 72 73 69 6f 6e 3d 27 32 2e 32 2e 30 2e 30 27 20 54 65 73 74 41 70 69 56 65 72 73 69 6f 6e 3d 27 32 2e 34 2e 30 2e 30 27 20 50 72 6f 64 75 63 74 49 64 3d 27 47 34 52 65 63 65 69 76 65 72 27 20 50 72 6f 64 75 63 74 4e 61 6d 65 3d 27 44 65 78 63 6f 6d 20 47 34 20 52 65 63 65 69 76 65 72 27 20 53 6f 66 74 77 61 72 65 4e 75 6d 62 65 72 3d 27 53 57 31 30 30 35 30 27 20 46 69 72 6d 77 61 72 65 56 65 72 73 69 6f 6e 3d 27 32 2e 30 2e 31 2e 31 30 34 27 20 50 6f 72 74 56 65 72 73 69 6f 6e 3d 27 34 2e 36 2e 34 2e 34 35 27 20 52 46 56 65 72 73 69 6f 6e 3d 27 31 2e 30 2e 30 2e 32 37 27 20 44 65 78 42 6f 6f 74 56 65 72 73")).thenReturn(fromHexString("69 6f"));
-//
-//    ResponseReader responseReader = new ResponseReader(new LittleEndianDataInputFactory());
-//    Utf8PayloadGenericResponse genericResponse = responseReader.read(Utf8PayloadGenericResponse.class, this.serialPort);
-//
-//    assertThat(genericResponse, not(nullValue()));
-//    assertThat(genericResponse.asString(), is("<FirmwareHeader SchemaVersion='1' ApiVersion='2.2.0.0' TestApiVersion='2.4.0.0' ProductId='G4Receiver' ProductName='Dexcom G4 Receiver' SoftwareNumber='SW10050' FirmwareVersion='2.0.1.104' PortVersion='4.6.4.45' RFVersion='1.0.0.27' DexBootVersion='3'/>"));
-//  }
-
   @Test
   public void readPageRangeResponseShouldMatchExample() throws Exception {
-    when(serialPort.readBytes(anyInt())).thenReturn(fromHexString("01 0E 00 01")).thenReturn(fromHexString("01 00 00 00 02 00 00 00")).thenReturn(fromHexString("97 11"));
+    when(serialPort.readBytes(HEADER_SIZE)).thenReturn(fromHexString("01 0E 00 01"));
+    when(serialPort.readBytes(14 - HEADER_SIZE - TRAILER_SIZE)).thenReturn(fromHexString("01 00 00 00 02 00 00 00"));
+    when(serialPort.readBytes(TRAILER_SIZE)).thenReturn(fromHexString("97 11"));
 
     ResponseReader responseReader = new ResponseReader(new LittleEndianDataInputFactory());
     PageRangeResponse pageRangeResponse = responseReader.read(PageRangeResponse.class, this.serialPort);
@@ -86,5 +75,31 @@ public class TestResponseReader {
     assertThat(pageRangeResponse, not(nullValue()));
     assertThat(pageRangeResponse.getFirstPage(), is(1L));
     assertThat(pageRangeResponse.getLastPage(), is(2L));
+  }
+
+  @Test
+  public void readDatabasePagesShouldSucceed() throws Exception {
+    when(serialPort.readBytes(HEADER_SIZE)).thenReturn(fromHexString("01 16 02 01"));
+    when(serialPort.readBytes(534 - HEADER_SIZE - TRAILER_SIZE)).thenReturn(fromHexString("00 00 00 00 01 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 3A 7D 7D F6 89 07 FD 85 89 07 3C 4D 61 6E 75 66 61 63 74 75 72 69 6E 67 50 61 72 61 6D 65 74 65 72 73 20 53 65 72 69 61 6C 4E 75 6D 62 65 72 3D 22 73 6D 33 30 31 34 30 37 35 32 22 20 48 61 72 64 77 61 72 65 50 61 72 74 4E 75 6D 62 65 72 3D 22 4D 44 31 30 36 30 2D 4D 54 32 30 36 34 39 22 20 48 61 72 64 77 61 72 65 52 65 76 69 73 69 6F 6E 3D 22 31 34 22 20 44 61 74 65 54 69 6D 65 43 72 65 61 74 65 64 3D 22 32 30 31 33 2D 30 31 2D 30 33 20 31 33 3A 35 34 3A 30 35 2E 35 33 36 20 2D 30 38 3A 30 30 22 20 48 61 72 64 77 61 72 65 49 64 3D 22 7B 37 35 42 37 43 38 38 36 2D 46 45 31 30 2D 34 32 30 46 2D 42 35 31 31 2D 32 44 33 46 39 42 39 42 45 45 37 45 7D 22 20 2F 3E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F4 FB"));
+    when(serialPort.readBytes(TRAILER_SIZE)).thenReturn(fromHexString("7F 04"));
+
+    ResponseReader responseReader = new ResponseReader(new LittleEndianDataInputFactory());
+    DatabasePagesResponse pagesResponse = responseReader.read(DatabasePagesResponse.class, this.serialPort);
+
+    assertThat(pagesResponse, not(nullValue()));
+  }
+
+  @Test
+  public void readManufacturingDataDatabasePagesShouldSucceed() throws Exception {
+    when(serialPort.readBytes(HEADER_SIZE)).thenReturn(fromHexString("01 16 02 01"));
+    when(serialPort.readBytes(534 - HEADER_SIZE - TRAILER_SIZE)).thenReturn(fromHexString("00 00 00 00 01 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 3A 7D 7D F6 89 07 FD 85 89 07 3C 4D 61 6E 75 66 61 63 74 75 72 69 6E 67 50 61 72 61 6D 65 74 65 72 73 20 53 65 72 69 61 6C 4E 75 6D 62 65 72 3D 22 73 6D 33 30 31 34 30 37 35 32 22 20 48 61 72 64 77 61 72 65 50 61 72 74 4E 75 6D 62 65 72 3D 22 4D 44 31 30 36 30 2D 4D 54 32 30 36 34 39 22 20 48 61 72 64 77 61 72 65 52 65 76 69 73 69 6F 6E 3D 22 31 34 22 20 44 61 74 65 54 69 6D 65 43 72 65 61 74 65 64 3D 22 32 30 31 33 2D 30 31 2D 30 33 20 31 33 3A 35 34 3A 30 35 2E 35 33 36 20 2D 30 38 3A 30 30 22 20 48 61 72 64 77 61 72 65 49 64 3D 22 7B 37 35 42 37 43 38 38 36 2D 46 45 31 30 2D 34 32 30 46 2D 42 35 31 31 2D 32 44 33 46 39 42 39 42 45 45 37 45 7D 22 20 2F 3E 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F4 FB"));
+    when(serialPort.readBytes(TRAILER_SIZE)).thenReturn(fromHexString("7F 04"));
+
+    ResponseReader responseReader = new ResponseReader(new LittleEndianDataInputFactory());
+    ManufacturingDataDatabasePagesResponse pagesResponse =
+            responseReader.read(ManufacturingDataDatabasePagesResponse.class, this.serialPort);
+
+    assertThat(pagesResponse, not(nullValue()));
+    assertThat(pagesResponse.getManufacturingParameters().size(), is(1));
   }
 }

@@ -24,7 +24,6 @@
 package org.glukit.dexcom.sync;
 
 import com.google.common.primitives.UnsignedBytes;
-import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
 
 import java.util.Iterator;
@@ -40,11 +39,11 @@ import static org.glukit.dexcom.sync.model.DatabaseReadRequestSpec.MAX_PAGES_PER
  *
  * @author alexandre.normand
  */
-public class DatabasePagesPlanner implements Iterable<DatabaseReadRequestSpec> {
+public class DatabasePagesBuilder implements Iterable<DatabaseReadRequestSpec> {
   private long firstPage;
   private long lastPage;
 
-  public DatabasePagesPlanner(long firstPage, long lastPage) {
+  public DatabasePagesBuilder(long firstPage, long lastPage) {
     this.firstPage = firstPage;
     this.lastPage = lastPage;
   }
@@ -59,7 +58,7 @@ public class DatabasePagesPlanner implements Iterable<DatabaseReadRequestSpec> {
     List<DatabaseReadRequestSpec> specs = newArrayList();
     for (long chunkStart = this.firstPage; chunkStart <= lastPage; chunkStart+= MAX_PAGES_PER_COMMAND) {
       specs.add(new DatabaseReadRequestSpec(chunkStart,
-              UnsignedBytes.min((byte) (lastPage - chunkStart), MAX_PAGES_PER_COMMAND)));
+              UnsignedBytes.min((byte) (lastPage - chunkStart + 1), MAX_PAGES_PER_COMMAND)));
     }
     return specs;
   }
