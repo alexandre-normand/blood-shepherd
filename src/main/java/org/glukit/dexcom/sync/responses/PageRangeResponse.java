@@ -26,7 +26,6 @@ package org.glukit.dexcom.sync.responses;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.DataInputFactory;
-import org.glukit.dexcom.sync.model.DatabaseReadRequestSpec;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;

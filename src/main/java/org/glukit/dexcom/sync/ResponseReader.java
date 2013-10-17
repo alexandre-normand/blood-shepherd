@@ -49,7 +49,7 @@ public class ResponseReader {
   private static Logger LOGGER = LoggerFactory.getLogger(ResponseReader.class);
 
   static final int HEADER_SIZE = 4;
-  static final int TRAILER_SIZE = 2;
+  public static final int TRAILER_SIZE = 2;
 
 
   private DataInputFactory dataInputFactory;

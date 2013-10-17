@@ -24,16 +24,17 @@
 package org.glukit.dexcom.sync;
 
 import com.google.common.base.Joiner;
+import com.google.common.primitives.UnsignedInts;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
-
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
+import static org.glukit.dexcom.sync.ResponseReader.TRAILER_SIZE;
 
 /**
  * Some useful methods for decoding.
@@ -80,6 +81,18 @@ public final class DecodingUtils {
 
   public static int unsignedShort(int value) {
     return (short) value & 0xFFFF;
+  }
+
+  public static void validateCrc(int receiverCrc, byte[] content) {
+    LOGGER.debug(format("Validating that [%s] matches crc value [%s]", toHexString(content),
+            UnsignedInts.toString(receiverCrc)));
+
+    int expectedCrc = DecodingUtils.getCrc16(content, 0, content.length - TRAILER_SIZE);
+
+    if (receiverCrc != expectedCrc) {
+      throw new IllegalStateException(format("Invalid crc, expected [%s], received [%s]",
+              UnsignedInts.toString(expectedCrc), UnsignedInts.toString((receiverCrc))));
+    }
   }
 
   /**

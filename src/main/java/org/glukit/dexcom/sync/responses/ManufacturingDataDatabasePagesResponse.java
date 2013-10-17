@@ -23,10 +23,12 @@
 
 package org.glukit.dexcom.sync.responses;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.xml.XmlMapper;
 import com.google.common.base.Throwables;
+import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.DataInputFactory;
+import org.glukit.dexcom.sync.DecodingUtils;
+import org.glukit.dexcom.sync.ResponseReader;
 import org.glukit.dexcom.sync.model.DatabasePage;
 import org.glukit.dexcom.sync.model.ManufacturingParameters;
 
@@ -36,6 +38,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.lang.String.format;
+import static org.glukit.dexcom.sync.DecodingUtils.*;
+import static org.glukit.dexcom.sync.ResponseReader.TRAILER_SIZE;
 
 /**
  * ManufacturingData {@link DatabasePagesResponse}
@@ -53,9 +58,15 @@ public class ManufacturingDataDatabasePagesResponse extends DatabasePagesRespons
       for (DatabasePage page : getPages()) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(page.getPageData());
         DataInput input = this.dataInputFactory.create(inputStream);
-        input.skipBytes(8);
-        byte[] xmlBytes = new byte[inputStream.available()];
+        // TODO: something better than ignoring the data?
+        long systemSeconds = UnsignedInts.toLong(input.readInt());
+        long displaySeconds = UnsignedInts.toLong(input.readInt());
+
+        byte[] xmlBytes = new byte[inputStream.available() - 2];
         input.readFully(xmlBytes);
+
+        validateCrc(input.readUnsignedShort(), page.getPageData());
+
         XmlMapper xmlMapper = new XmlMapper();
         ManufacturingParameters parameterPage = xmlMapper.readValue(new String(xmlBytes, "UTF-8"),
                 ManufacturingParameters.class);

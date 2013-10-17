@@ -25,10 +25,6 @@ package org.glukit.dexcom.sync.model;
 
 import com.fasterxml.jackson.xml.annotate.JacksonXmlProperty;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
 /**
  * Manufacturing data structure.
  *

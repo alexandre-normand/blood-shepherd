@@ -32,8 +32,6 @@ import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
 import javax.usb.UsbServices;
 
-import static com.google.common.collect.Maps.newHashMap;
-
 /**
  * Guice module with the dependencies configuration.
  *

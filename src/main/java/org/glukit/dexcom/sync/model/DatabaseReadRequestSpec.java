@@ -23,7 +23,6 @@
 
 package org.glukit.dexcom.sync.model;
 
-import com.google.common.base.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 

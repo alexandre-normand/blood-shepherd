@@ -23,10 +23,7 @@
 
 package org.glukit.dexcom.sync.responses;
 
-import com.google.common.base.Throwables;
 import org.glukit.dexcom.sync.DataInputFactory;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * Generic Response

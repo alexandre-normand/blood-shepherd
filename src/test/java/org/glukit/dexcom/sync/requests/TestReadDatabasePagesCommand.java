@@ -27,6 +27,7 @@ import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
 import org.junit.Test;
 
 import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.glukit.dexcom.sync.model.RecordType.EGVData;
 import static org.glukit.dexcom.sync.model.RecordType.ManufacturingData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -43,4 +44,11 @@ public class TestReadDatabasePagesCommand {
             new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), ManufacturingData, 0L, (byte) 1);
     assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 00 00 00 00 00 01 6E 45")));
   }
+
+  @Test
+    public void readGlucoseDatabasePagesShouldMatchExample() throws Exception {
+      ReadDatabasePagesCommand readDatabasePagesCommand =
+              new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), EGVData, 1465L, (byte) 4);
+      assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 04 B9 05 00 00 04 6D 29")));
+    }
 }

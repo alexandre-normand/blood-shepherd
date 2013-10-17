@@ -1,1 +1,2 @@
-```ManufacturingDataDatabasePagesResponse``` skips the first 8 bytes of PageData to get the XML. I should figure out what those are and parse them.
+* Think about the messy date/times from Dexcom that are seconds since 2009-01-01 (UTC? right?) and how best to represent it without making it appear as it we had information that we don't.
+* Handle Special Glucose Values in GlucoseReadsDatabasePagesResponse.

@@ -23,6 +23,11 @@
 
 package org.glukit.dexcom.sync.g4;
 
+import org.threeten.bp.Instant;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+import org.threeten.bp.temporal.TemporalAccessor;
+
 /**
  * Constants associated with the Dexcom G4 Platinum receiver
  * @author alexandre.normand
@@ -33,4 +38,5 @@ public class DexcomG4Constants {
   public static final int STOP_BITS = 1;
   public static final int NO_PARITY = 0;
   public static final int FIRMWARE_BAUD_RATE = 0x9600;
+  public static final Instant DEXCOM_EPOCH = Instant.from(ZonedDateTime.of(2009, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")));
 }
