@@ -7,6 +7,8 @@ import org.glukit.dexcom.sync.model.ManufacturingParameters;
 import org.glukit.dexcom.sync.model.UserEventRecord;
 import org.glukit.sync.api.*;
 import org.junit.Test;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 
@@ -16,6 +18,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.glukit.dexcom.sync.DexcomAdapterService.SPECIAL_GLUCOSE_VALUES;
+import static org.glukit.sync.api.InsulinInjection.InsulinType.UNKNOWN;
+import static org.glukit.sync.api.InsulinInjection.UNAVAILABLE_INSULIN_NAME;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,8 +65,8 @@ public class TestDexcomAdapterService {
         new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
 
     GlucoseRead expectedRead = new GlucoseRead(
-        DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(1000L),
-        LocalDateTime.ofInstant(DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(1000L), ZoneId.of("UTC")),
+        internalTimeFromSeconds(1000L),
+        localDateTimeFromSeconds(1000L),
         NORMAL_READ_TEST_VALUE.floatValue(),
         GlucoseRead.Unit.MG_PER_DL);
     SyncData expectedSyncData = new SyncData(Arrays.asList(expectedRead), EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
@@ -80,14 +84,14 @@ public class TestDexcomAdapterService {
         new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
 
     GlucoseRead expectedRead1 = new GlucoseRead(
-        DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(1000L),
-        LocalDateTime.ofInstant(DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(1000L), ZoneId.of("UTC")),
+        internalTimeFromSeconds(1000L),
+        localDateTimeFromSeconds(1000L),
         NORMAL_READ_TEST_VALUE.floatValue(),
         GlucoseRead.Unit.MG_PER_DL);
 
     GlucoseRead expectedRead2 = new GlucoseRead(
-        DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(2000L),
-        LocalDateTime.ofInstant(DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(2000L), ZoneId.of("UTC")),
+        internalTimeFromSeconds(2000L),
+        localDateTimeFromSeconds(2000L),
         NORMAL_READ_TEST_VALUE.floatValue(),
         GlucoseRead.Unit.MG_PER_DL);
     SyncData expectedSyncData = new SyncData(Arrays.asList(expectedRead1, expectedRead2), EMPTY_INSULIN_INJECTIONS,
@@ -126,5 +130,67 @@ public class TestDexcomAdapterService {
       assertThat(format("Glucose value [%d] should not be included in the conversion result", specialGlucoseValue),
           syncData, is(equalTo(expectedSyncData)));
     }
+  }
+
+  @Test
+  public void insulinUserRecordShouldBeConverted() throws Exception {
+    DexcomAdapterService dexcomAdapterService = new DexcomAdapterService();
+
+    SyncData syncData = dexcomAdapterService.convertData(
+        new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
+            Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.INSULIN, (byte) 0, 350)),
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+
+    InsulinInjection expectedInsulinInjection = new InsulinInjection(internalTimeFromSeconds(1000L),
+        localDateTimeFromSeconds(2000L), localDateTimeFromSeconds(1500L), 3.5f, UNKNOWN, UNAVAILABLE_INSULIN_NAME);
+    SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, Arrays.asList(expectedInsulinInjection), EMPTY_FOOD_EVENTS,
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+
+    assertThat(syncData, is(equalTo(expectedSyncData)));
+  }
+
+  @Test
+  public void exerciseUserRecordShouldBeConverted() throws Exception {
+    DexcomAdapterService dexcomAdapterService = new DexcomAdapterService();
+
+    SyncData syncData = dexcomAdapterService.convertData(
+        new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
+            Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.EXERCISE,
+                UserEventRecord.ExerciseIntensity.LIGHT.getId(), 10)),
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+
+    ExerciseSession expectedExerciseSession = new ExerciseSession(internalTimeFromSeconds(1000L),
+        localDateTimeFromSeconds(2000L), localDateTimeFromSeconds(1500L), ExerciseSession.Intensity.LIGHT,
+        Duration.ofMinutes(10), ExerciseSession.EMPTY_DESCRIPTION);
+    SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
+        Arrays.asList(expectedExerciseSession), new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+
+    assertThat(syncData, is(equalTo(expectedSyncData)));
+  }
+
+  @Test
+  public void carbUserRecordShouldBeConverted() throws Exception {
+    DexcomAdapterService dexcomAdapterService = new DexcomAdapterService();
+
+    SyncData syncData = dexcomAdapterService.convertData(
+        new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
+            Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.CARBS,
+                (byte) 0, 12)),
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+
+    FoodEvent foodEvent = new FoodEvent(internalTimeFromSeconds(1000L), localDateTimeFromSeconds(2000L),
+        localDateTimeFromSeconds(1500L), 12f, 0f);
+    SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, Arrays.asList(foodEvent),
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+
+    assertThat(syncData, is(equalTo(expectedSyncData)));
+  }
+
+  private Instant internalTimeFromSeconds(long secondsToAdd) {
+    return DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(secondsToAdd);
+  }
+
+  private LocalDateTime localDateTimeFromSeconds(long secondsToAdd) {
+    return LocalDateTime.ofInstant(internalTimeFromSeconds(secondsToAdd), ZoneId.of("UTC"));
   }
 }

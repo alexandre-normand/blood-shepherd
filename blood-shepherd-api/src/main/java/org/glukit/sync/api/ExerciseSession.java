@@ -14,6 +14,8 @@ import org.threeten.bp.LocalDateTime;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class ExerciseSession extends TimestampedEvent {
+  public static final String EMPTY_DESCRIPTION = "";
+
   private Duration duration;
   private Intensity intensity;
   private String description;

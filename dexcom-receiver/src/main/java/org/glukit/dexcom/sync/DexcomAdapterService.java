@@ -26,7 +26,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.CARBS;
 import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.EXERCISE;
 import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.INSULIN;
+import static org.glukit.sync.api.ExerciseSession.EMPTY_DESCRIPTION;
 import static org.glukit.sync.api.InsulinInjection.InsulinType.UNKNOWN;
+import static org.glukit.sync.api.InsulinInjection.UNAVAILABLE_INSULIN_NAME;
 
 /**
  * This service adapts Dexcom-specific physical models to higher-level models.
@@ -157,7 +159,8 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
 
           float unitValue = insulinEvent.getEventValue() / 100.f;
 
-          return new InsulinInjection(internalTimeUTC, localRecordedTime, eventLocalTime, unitValue, UNKNOWN, "N/A");
+          return new InsulinInjection(internalTimeUTC, localRecordedTime, eventLocalTime, unitValue, UNKNOWN,
+              UNAVAILABLE_INSULIN_NAME);
         }
       };
 
@@ -222,7 +225,7 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
               DEXCOM_EXERCISE_INTENSITY_TO_INTENSITY.apply(exerciseIntensity);
 
           return new ExerciseSession(internalTimeUTC, localRecordedTime, eventLocalTime,
-              intensity, Duration.ofMinutes(duration), "");
+              intensity, Duration.ofMinutes(duration), EMPTY_DESCRIPTION);
         }
       };
 

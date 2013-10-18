@@ -44,7 +44,7 @@ public class UserEventsDatabasePagesResponse extends GenericRecordDatabasePagesR
     validateCrc(actualReceiverCrc, recordBytes);
 
     UserEventRecord userEventRecord = new UserEventRecord(systemSeconds, displaySeconds,
-        eventType, eventSubType, eventLocalTimeInSeconds, eventValue);
+        eventLocalTimeInSeconds, eventType, eventSubType, eventValue);
     LOGGER.debug(format("Parsed UserEventRecord: [%s]", userEventRecord));
 
     return userEventRecord;

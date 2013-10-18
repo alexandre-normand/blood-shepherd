@@ -26,9 +26,9 @@ public class UserEventRecord {
 
   public UserEventRecord(long internalSecondsSinceDexcomEpoch,
                          long localSecondsSinceDexcomEpoch,
+                         long eventSecondsSinceDexcomEpoch,
                          UserEventType eventType,
                          byte eventSubType,
-                         long eventSecondsSinceDexcomEpoch,
                          long eventValue) {
     this.internalSecondsSinceDexcomEpoch = internalSecondsSinceDexcomEpoch;
     this.localSecondsSinceDexcomEpoch = localSecondsSinceDexcomEpoch;
@@ -65,7 +65,7 @@ public class UserEventRecord {
   public static enum UserEventType {
     CARBS((byte) 1),
     EXERCISE((byte) 4),
-    Health((byte) 3),
+    HEALTH((byte) 3),
     INSULIN((byte) 2),
     MaxValue((byte) 5),
     NullType((byte) 0);

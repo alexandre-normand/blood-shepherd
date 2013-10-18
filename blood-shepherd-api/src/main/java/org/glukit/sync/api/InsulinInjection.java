@@ -13,6 +13,8 @@ import org.threeten.bp.LocalDateTime;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class InsulinInjection extends TimestampedEvent {
+  public static final String UNAVAILABLE_INSULIN_NAME = "N/A";
+
   private String insulinName;
   private InsulinType insulinType;
   private float unitValue;
