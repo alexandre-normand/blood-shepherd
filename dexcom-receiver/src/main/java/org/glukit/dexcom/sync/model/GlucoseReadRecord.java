@@ -25,7 +25,6 @@ package org.glukit.dexcom.sync.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.threeten.bp.Instant;
 
 /**
  * A glucose read record. It's pretty important. It maps to {@link RecordType#EGVData}.
@@ -37,35 +36,33 @@ import org.threeten.bp.Instant;
 public class GlucoseReadRecord {
   public static final int RECORD_LENGTH = 13;
 
-  // TODO: Both time values actually don't have a timezone. therefore, it might make more sense to keep them
-  // as partial times or maybe always consider them UTC. Consumers should care about
-  private Instant internalSeconds;
-  private Instant localSeconds;
+  private long internalSecondsSinceDexcomEpoch;
+  private long localSecondsSinceDexcomEpoch;
   private int glucoseValueWithFlags;
   private byte trendArrowAndNoise;
   private long recordNumber;
   private long pageNumber;
 
-  public GlucoseReadRecord(Instant internalSeconds,
-                           Instant localSeconds,
+  public GlucoseReadRecord(long internalSecondsSinceDexcomEpoch,
+                           long localSecondsSinceDexcomEpoch,
                            int glucoseValueWithFlags,
                            byte trendArrowAndNoise,
                            long recordNumber,
                            long pageNumber) {
-    this.internalSeconds = internalSeconds;
-    this.localSeconds = localSeconds;
+    this.internalSecondsSinceDexcomEpoch = internalSecondsSinceDexcomEpoch;
+    this.localSecondsSinceDexcomEpoch = localSecondsSinceDexcomEpoch;
     this.glucoseValueWithFlags = glucoseValueWithFlags;
     this.trendArrowAndNoise = trendArrowAndNoise;
     this.recordNumber = recordNumber;
     this.pageNumber = pageNumber;
   }
 
-  public Instant getInternalSeconds() {
-    return internalSeconds;
+  public long getInternalSecondsSinceDexcomEpoch() {
+    return internalSecondsSinceDexcomEpoch;
   }
 
-  public Instant getLocalSeconds() {
-    return localSeconds;
+  public long getLocalSecondsSinceDexcomEpoch() {
+    return localSecondsSinceDexcomEpoch;
   }
 
   public int getGlucoseValueWithFlags() {

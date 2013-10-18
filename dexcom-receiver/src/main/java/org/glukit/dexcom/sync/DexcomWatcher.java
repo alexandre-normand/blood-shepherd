@@ -44,15 +44,15 @@ import static java.lang.String.format;
  * @author alexandre.normand
  */
 public class DexcomWatcher implements UsbServicesListener {
-  private static Logger LOGGER = LoggerFactory.getLogger(Daemon.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(DexcomDaemon.class);
 
   private final DeviceFilter deviceFilter;
-  private final ReceiverFinder receiverFinder;
+  private final DexcomReceiverFinder receiverFinder;
   private final FetchNewDataRunner fetchNewDataRunner;
 
   @Inject
   public DexcomWatcher(DeviceFilter deviceFilter,
-                       ReceiverFinder receiverFinder,
+                       DexcomReceiverFinder receiverFinder,
                        FetchNewDataRunner fetchNewDataRunner) {
     this.deviceFilter = deviceFilter;
     this.receiverFinder = receiverFinder;

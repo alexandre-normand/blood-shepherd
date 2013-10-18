@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>dexcom-receiver</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>blood-shepherd</groupId>
+        <artifactId>blood-shepherd</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>jssc</groupId>
+            <artifactId>jssc</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>blood-shepherd</groupId>
+            <artifactId>blood-shepherd-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+
+    <repositories>
+        <repository>
+            <id>ailis</id>
+            <name>Ailis Maven Releases</name>
+            <url>http://nexus.ailis.de/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>repo.local</id>
+            <name>dexcom-sync-org.glukit.sync.api-unmanaged-dependencies</name>
+            <url>file:${project.basedir}/repo.local</url>
+        </repository>
+    </repositories>
+
+</project>

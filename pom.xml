@@ -4,9 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>dexcom-sync-api</groupId>
-    <artifactId>dexcom-sync-api</artifactId>
+    <groupId>blood-shepherd</groupId>
+    <artifactId>blood-shepherd</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+
+    <modules>
+        <module>dexcom-receiver</module>
+        <module>blood-shepherd-api</module>
+        <module>blood-shepherd-main</module>
+    </modules>
 
     <dependencies>
         <dependency>
@@ -55,11 +62,6 @@
             <version>15.0</version>
         </dependency>
         <dependency>
-            <groupId>jssc</groupId>
-            <artifactId>jssc</artifactId>
-            <version>2.6.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.threeten</groupId>
             <artifactId>threetenbp</artifactId>
             <version>0.8.1</version>
@@ -86,9 +88,9 @@
             <version>2.2.2</version>
         </dependency>
         <dependency>
-        	<groupId>com.fasterxml</groupId>
-        	<artifactId>jackson-xml-databind</artifactId>
-        	<version>0.6.2</version>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>jackson-xml-databind</artifactId>
+            <version>0.6.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -110,47 +112,5 @@
         </dependency>
 
     </dependencies>
-
-
-    <repositories>
-        <repository>
-            <id>ailis</id>
-            <name>Ailis Maven Releases</name>
-            <url>http://nexus.ailis.de/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>repo.local</id>
-            <name>dexcom-sync-api-unmanaged-dependencies</name>
-            <url>file:${project.basedir}/repo.local</url>
-        </repository>
-    </repositories>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.glukit.dexcom.sync.SyncDexcomService</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
-    </build>
 
 </project>

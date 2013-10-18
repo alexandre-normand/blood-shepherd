@@ -1,7 +1,7 @@
 blood-shepherd
 ===========
 
-blood-shepherd is my playground of exploration for a sync api to the 
+blood-shepherd is my playground of exploration for a sync org.glukit.sync.api to the
 [Dexcom Platinum G4](http://dexcom.com/dexcom-g4-platinum) receiver. 
 If you don't know what that is, chances are that it's because you don't have diabetes and it's a good thing.
 If you do have diabetes, check it out, the [dexcom](http://dexcom.com/) is a nice tool. 
@@ -17,7 +17,7 @@ Quick start
 
 Run it
 ------
-```java -jar ./target/*jar-with-dependencies.jar```
+```java -jar ./blood-shepherd-main/target/*jar-with-dependencies.jar```
 
 Status
 ------

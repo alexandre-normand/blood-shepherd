@@ -89,12 +89,10 @@ public class GlucoseReadsDatabasePagesResponse extends DatabasePagesResponse {
     long systemSeconds = UnsignedInts.toLong(input.readInt());
     long displaySeconds = UnsignedInts.toLong(input.readInt());
     int glucoseValueWithFlags = input.readUnsignedShort();
-    Instant systemTime = DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(systemSeconds);
-    Instant displayTime = DexcomG4Constants.DEXCOM_EPOCH.plusSeconds(displaySeconds);
     byte trendAndArrowNoise = input.readByte();
     int actualReceiverCrc = input.readUnsignedShort();
 
-    GlucoseReadRecord glucoseReadRecord = new GlucoseReadRecord(systemTime, displayTime,
+    GlucoseReadRecord glucoseReadRecord = new GlucoseReadRecord(systemSeconds, displaySeconds,
             glucoseValueWithFlags, trendAndArrowNoise, recordNumber, header.getPageNumber());
     LOGGER.debug(format("Parsed GlucoseRead: [%s]", glucoseReadRecord));
     validateCrc(actualReceiverCrc, recordBytes);

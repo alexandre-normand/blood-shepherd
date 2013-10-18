@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.sync;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -29,30 +29,31 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.glukit.dexcom.sync.DexcomDaemon;
 
 import javax.usb.UsbException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Main class for the bloodsucker sync daemon.
+ * Main class for the bloodsucker sync dexcomDaemon.
  *
  * @author alexandre.normand
  */
-public class SyncDexcomService {
+public class DexcomReceiverSyncService {
 
-  private Daemon daemon;
+  private DexcomDaemon dexcomDaemon;
 
   @Inject
-  public SyncDexcomService(Daemon daemon) {
-    this.daemon = daemon;
+  public DexcomReceiverSyncService(DexcomDaemon dexcomDaemon) {
+    this.dexcomDaemon = dexcomDaemon;
   }
 
   public void run() {
-    this.daemon.start();
+    this.dexcomDaemon.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        daemon.stop();
+        dexcomDaemon.stop();
       }
     });
 
@@ -63,9 +64,9 @@ public class SyncDexcomService {
 
   public static void main(String[] args) throws UsbException {
     Injector injector = Guice.createInjector(new DexcomModule());
-    SyncDexcomService syncDexcomService = injector.getInstance(SyncDexcomService.class);
+    DexcomReceiverSyncService dexcomReceiverSyncService = injector.getInstance(DexcomReceiverSyncService.class);
 
-    JCommander jCommander = new JCommander(syncDexcomService, args);
+    JCommander jCommander = new JCommander(dexcomReceiverSyncService, args);
     try {
       jCommander.parse(args);
     } catch (ParameterException e) {
@@ -73,7 +74,7 @@ public class SyncDexcomService {
       System.exit(1);
     }
 
-    syncDexcomService.run();
+    dexcomReceiverSyncService.run();
   }
 
 }

@@ -21,40 +21,40 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.glukit.dexcom.sync;
+package org.glukit.sync.api;
 
-import com.google.inject.Inject;
-import jssc.SerialPortList;
-import org.glukit.dexcom.sync.tasks.IsReceiverOnThisPortRunner;
-
-import java.util.regex.Pattern;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDateTime;
 
 /**
- * Finds the {@link jssc.SerialPort} for the Dexcom receiver
+ * High-level glucose read.
+ *
  * @author alexandre.normand
  */
-public class ReceiverFinder {
-  public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
-  private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
+@ToString
+@EqualsAndHashCode
+public class GlucoseRead {
+  private Instant internalTime;
+  private LocalDateTime displayTime;
+  private float value;
 
-  @Inject
-  public ReceiverFinder(IsReceiverOnThisPortRunner isReceiverOnThisPortRunner) {
-    this.isReceiverOnThisPortRunner = isReceiverOnThisPortRunner;
+  public GlucoseRead(Instant internalTime, LocalDateTime displayTime, float value) {
+    this.internalTime = internalTime;
+    this.displayTime = displayTime;
+    this.value = value;
   }
 
-  public String findReceiverPort() {
-    String[] portNames = SerialPortList.getPortNames(DEVICE_FILTER);
-    if (portNames == null || portNames.length == 0) {
-      throw new IllegalStateException("Receiver serial port can't be found");
-    }
+  public Instant getInternalTime() {
+    return internalTime;
+  }
 
-    for (String port : portNames) {
-      if (this.isReceiverOnThisPortRunner.isReceiver(port)) {
-        return port;
-      }
-    }
+  public LocalDateTime getDisplayTime() {
+    return displayTime;
+  }
 
-    throw new IllegalStateException("Found some matching devices but none of them identified as the dexcom receiver. " +
-            "Maybe another application is holding the port?");
+  public float getValue() {
+    return value;
   }
 }

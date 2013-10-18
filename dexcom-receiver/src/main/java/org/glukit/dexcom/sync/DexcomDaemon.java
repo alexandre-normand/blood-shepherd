@@ -20,40 +20,38 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package org.glukit.dexcom.sync;
 
-import com.google.common.base.Throwables;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import org.glukit.dexcom.sync.g4.DexcomG4Filter;
+import com.google.inject.Inject;
+import de.ailis.usb4java.libusb.LibUsb;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.usb.UsbException;
-import javax.usb.UsbHostManager;
 import javax.usb.UsbServices;
 
 /**
- * Guice module with the dependencies configuration.
+ * That the daemon that will start the services.
  *
  * @author alexandre.normand
  */
-public class DexcomModule extends AbstractModule {
-  @Override
-  protected void configure() {
-    bind(DeviceFilter.class).to(DexcomG4Filter.class);
+public class DexcomDaemon {
+  private static Logger LOGGER = LoggerFactory.getLogger(DexcomDaemon.class);
+  private final UsbServices usbServices;
+  private final DexcomWatcher watcher;
 
-    bind(DataOutputFactory.class).to(LittleEndianDataOutputFactory.class);
-    bind(DataInputFactory.class).to(LittleEndianDataInputFactory.class);
+  @Inject
+  public DexcomDaemon(UsbServices usbServices, DexcomWatcher watcher) {
+    this.usbServices = usbServices;
+    this.watcher = watcher;
   }
 
-  @Provides
-  UsbServices provideUsbServices() {
-    UsbServices usbServices = null;
-    try {
-      usbServices = UsbHostManager.getUsbServices();
-    } catch (UsbException e) {
-      Throwables.propagate(e);
-    }
-    return usbServices;
+  public void start() {
+    this.usbServices.addUsbServicesListener(watcher);
+    LibUsb.init(null);
+  }
+
+  public void stop() {
+    this.usbServices.removeUsbServicesListener(watcher);
+    LibUsb.exit(null);
   }
 }

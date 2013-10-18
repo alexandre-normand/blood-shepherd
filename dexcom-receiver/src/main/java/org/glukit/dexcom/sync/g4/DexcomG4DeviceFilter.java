@@ -31,7 +31,7 @@ import javax.usb.UsbDeviceDescriptor;
  * {@link org.glukit.dexcom.sync.DeviceFilter} for the Dexcom G4 Platinum.
  * @author alexandre.normand
  */
-public class DexcomG4Filter implements DeviceFilter {
+public class DexcomG4DeviceFilter implements DeviceFilter {
   public static short VENDOR_ID = 8867;
   public static short PRODUCT_ID = 71;
 

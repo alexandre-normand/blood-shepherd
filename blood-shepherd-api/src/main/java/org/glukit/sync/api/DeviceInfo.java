@@ -20,38 +20,27 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.glukit.dexcom.sync;
 
-import com.google.inject.Inject;
-import de.ailis.usb4java.libusb.LibUsb;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.glukit.sync.api;
 
-import javax.usb.UsbServices;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
- * That the daemon that will start the services.
+ * High-level device info model.
  *
  * @author alexandre.normand
  */
-public class Daemon {
-  private static Logger LOGGER = LoggerFactory.getLogger(Daemon.class);
-  private final UsbServices usbServices;
-  private final DexcomWatcher watcher;
+@ToString
+@EqualsAndHashCode
+public class DeviceInfo {
+  private String serialNumber;
+  private String hardwareId;
+  private String hardwareRevision;
 
-  @Inject
-  public Daemon(UsbServices usbServices, DexcomWatcher watcher) {
-    this.usbServices = usbServices;
-    this.watcher = watcher;
-  }
-
-  public void start() {
-    this.usbServices.addUsbServicesListener(watcher);
-    LibUsb.init(null);
-  }
-
-  public void stop() {
-    this.usbServices.removeUsbServicesListener(watcher);
-    LibUsb.exit(null);
+  public DeviceInfo(String serialNumber, String hardwareId, String hardwareRevision) {
+    this.serialNumber = serialNumber;
+    this.hardwareId = hardwareId;
+    this.hardwareRevision = hardwareRevision;
   }
 }
