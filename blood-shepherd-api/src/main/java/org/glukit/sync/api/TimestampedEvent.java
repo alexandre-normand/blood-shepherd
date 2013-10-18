@@ -6,32 +6,22 @@ import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
 
 /**
- * This represents a timestamped value. It implements {@link Comparable} so that all subclasses get proper ordering for
- * free.
+ * Timestamped event. In addition to being a timestamped value, it has a {@link LocalDateTime} that is
+ * associated with the event.
  *
  * @author alexandre.normand
  */
 @ToString
-@EqualsAndHashCode
-public abstract class TimestampedEvent implements Comparable<TimestampedEvent> {
-  protected final Instant internalTime;
-  protected final LocalDateTime localTime;
+@EqualsAndHashCode(callSuper = true)
+public class TimestampedEvent extends TimestampedValue {
+  private LocalDateTime eventTime;
 
-  public TimestampedEvent(Instant internalTime, LocalDateTime localTime) {
-    this.internalTime = internalTime;
-    this.localTime = localTime;
+  public TimestampedEvent(Instant internalTime, LocalDateTime localRecordedTime, LocalDateTime eventLocalTime) {
+    super(internalTime, localRecordedTime);
+    this.eventTime = eventLocalTime;
   }
 
-  public Instant getInternalTime() {
-    return internalTime;
-  }
-
-  public LocalDateTime getLocalTime() {
-    return localTime;
-  }
-
-  @Override
-  public int compareTo(TimestampedEvent other) {
-    return other.internalTime.compareTo(this.internalTime);
+  public LocalDateTime getEventLocalTime() {
+    return this.eventTime;
   }
 }

@@ -37,14 +37,14 @@ public class UserEventsDatabasePagesResponse extends GenericRecordDatabasePagesR
     long displaySeconds = UnsignedInts.toLong(input.readInt());
     UserEventRecord.UserEventType eventType = UserEventRecord.UserEventType.fromId(input.readByte());
     byte eventSubType = input.readByte();
-    long eventTime = UnsignedInts.toLong(input.readInt());
+    long eventLocalTimeInSeconds = UnsignedInts.toLong(input.readInt());
     long eventValue = UnsignedInts.toLong(input.readInt());
     int actualReceiverCrc = input.readUnsignedShort();
 
     validateCrc(actualReceiverCrc, recordBytes);
 
     UserEventRecord userEventRecord = new UserEventRecord(systemSeconds, displaySeconds,
-        eventType, eventSubType, eventTime, eventValue);
+        eventType, eventSubType, eventLocalTimeInSeconds, eventValue);
     LOGGER.debug(format("Parsed UserEventRecord: [%s]", userEventRecord));
 
     return userEventRecord;

@@ -21,20 +21,20 @@ public class UserEventRecord {
   private long localSecondsSinceDexcomEpoch;
   private UserEventType eventType;
   private byte eventSubType;
-  private long eventTime;
+  private long eventSecondsSinceDexcomEpoch;
   private long eventValue;
 
   public UserEventRecord(long internalSecondsSinceDexcomEpoch,
                          long localSecondsSinceDexcomEpoch,
                          UserEventType eventType,
                          byte eventSubType,
-                         long eventTime,
+                         long eventSecondsSinceDexcomEpoch,
                          long eventValue) {
     this.internalSecondsSinceDexcomEpoch = internalSecondsSinceDexcomEpoch;
     this.localSecondsSinceDexcomEpoch = localSecondsSinceDexcomEpoch;
     this.eventType = eventType;
     this.eventSubType = eventSubType;
-    this.eventTime = eventTime;
+    this.eventSecondsSinceDexcomEpoch = eventSecondsSinceDexcomEpoch;
     this.eventValue = eventValue;
   }
 
@@ -54,8 +54,8 @@ public class UserEventRecord {
     return eventSubType;
   }
 
-  public long getEventTime() {
-    return eventTime;
+  public long getEventSecondsSinceDexcomEpoch() {
+    return eventSecondsSinceDexcomEpoch;
   }
 
   public long getEventValue() {

@@ -35,7 +35,7 @@ import org.threeten.bp.LocalDateTime;
  */
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class GlucoseRead extends TimestampedEvent {
+public class GlucoseRead extends TimestampedValue {
   private float value;
   private Unit unit;
 

@@ -13,18 +13,18 @@ import org.threeten.bp.LocalDateTime;
  */
 @ToString
 @EqualsAndHashCode(callSuper = true)
-// TODO review this ambiguation of internal vs display vs event times
 public class ExerciseSession extends TimestampedEvent {
   private Duration duration;
   private Intensity intensity;
   private String description;
 
-  public ExerciseSession(Duration duration,
-                         Instant internalTime,
-                         LocalDateTime localEventTime,
+  public ExerciseSession(Instant internalTime,
+                         LocalDateTime localRecordedTime,
+                         LocalDateTime eventLocalTime,
                          Intensity intensity,
+                         Duration duration,
                          String description) {
-    super(internalTime, localEventTime);
+    super(internalTime, localRecordedTime, eventLocalTime);
     this.duration = duration;
     this.intensity = intensity;
     this.description = description;

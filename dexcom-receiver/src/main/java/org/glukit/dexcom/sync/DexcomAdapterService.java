@@ -150,12 +150,14 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
 
           Instant internalTimeUTC =
               DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(insulinEvent.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime localRecordedTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(insulinEvent.getLocalSecondsSinceDexcomEpoch());
           LocalDateTime eventLocalTime =
-              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(insulinEvent.getEventTime());
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(insulinEvent.getEventSecondsSinceDexcomEpoch());
 
           float unitValue = insulinEvent.getEventValue() / 100.f;
 
-          return new InsulinInjection(internalTimeUTC, eventLocalTime, unitValue, UNKNOWN, "N/A");
+          return new InsulinInjection(internalTimeUTC, localRecordedTime, eventLocalTime, unitValue, UNKNOWN, "N/A");
         }
       };
 
@@ -168,12 +170,14 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
 
           Instant internalTimeUTC =
               DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(carbEvent.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime localRecordedTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(carbEvent.getLocalSecondsSinceDexcomEpoch());
           LocalDateTime eventLocalTime =
-              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(carbEvent.getEventTime());
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(carbEvent.getEventSecondsSinceDexcomEpoch());
 
           float unitValue = carbEvent.getEventValue();
 
-          return new FoodEvent(unitValue, 0f, internalTimeUTC, eventLocalTime);
+          return new FoodEvent(internalTimeUTC, localRecordedTime, eventLocalTime, unitValue, 0f);
         }
       };
 
@@ -189,7 +193,7 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
         case MEDIUM:
           return ExerciseSession.Intensity.MEDIUM;
         case HEAVY:
-          return ExerciseSession.Intensity.LIGHT;
+          return ExerciseSession.Intensity.HEAVY;
         default:
           return null;
       }
@@ -205,8 +209,10 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
 
           Instant internalTimeUTC =
               DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(exerciseSession.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime localRecordedTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(exerciseSession.getLocalSecondsSinceDexcomEpoch());
           LocalDateTime eventLocalTime =
-              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(exerciseSession.getEventTime());
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(exerciseSession.getEventSecondsSinceDexcomEpoch());
 
           long duration = exerciseSession.getEventValue();
 
@@ -215,7 +221,8 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
           ExerciseSession.Intensity intensity =
               DEXCOM_EXERCISE_INTENSITY_TO_INTENSITY.apply(exerciseIntensity);
 
-          return new ExerciseSession(Duration.ofMinutes(duration), internalTimeUTC, eventLocalTime, intensity, "");
+          return new ExerciseSession(internalTimeUTC, localRecordedTime, eventLocalTime,
+              intensity, Duration.ofMinutes(duration), "");
         }
       };
 

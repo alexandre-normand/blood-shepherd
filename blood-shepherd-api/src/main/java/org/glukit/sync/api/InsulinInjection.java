@@ -18,11 +18,12 @@ public class InsulinInjection extends TimestampedEvent {
   private float unitValue;
 
   public InsulinInjection(Instant internalTime,
-                          LocalDateTime localTime,
+                          LocalDateTime localRecordedTime,
+                          LocalDateTime localEventTime,
                           float unitValue,
                           InsulinType insulinType,
                           String insulinName) {
-    super(internalTime, localTime);
+    super(internalTime, localRecordedTime, localEventTime);
     this.insulinName = insulinName;
     this.insulinType = insulinType;
     this.unitValue = unitValue;

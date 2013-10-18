@@ -16,8 +16,12 @@ public class FoodEvent extends TimestampedEvent {
   private float carbohydrates;
   private float proteins;
 
-  public FoodEvent(float carbohydrates, float proteins, Instant internalTime, LocalDateTime localTime) {
-    super(internalTime, localTime);
+  public FoodEvent(Instant internalTime,
+                   LocalDateTime localRecordedTime,
+                   LocalDateTime eventLocalTime,
+                   float carbohydrates,
+                   float proteins) {
+    super(internalTime, localRecordedTime, eventLocalTime);
     this.carbohydrates = carbohydrates;
     this.proteins = proteins;
   }
