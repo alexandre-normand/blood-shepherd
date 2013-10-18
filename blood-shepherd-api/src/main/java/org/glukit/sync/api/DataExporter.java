@@ -23,8 +23,6 @@
 
 package org.glukit.sync.api;
 
-import java.util.List;
-
 /**
  * DataExporter interface. Implement this to export the data read from your receiver.
  *
@@ -32,5 +30,5 @@ import java.util.List;
  */
 public interface DataExporter {
 
-  void exportData(DeviceInfo device, List<GlucoseRead> glucoseReads);
+  void exportData(SyncData syncData);
 }
