@@ -26,7 +26,6 @@ package org.glukit.dexcom.sync.g4;
 import org.threeten.bp.Instant;
 import org.threeten.bp.ZoneId;
 import org.threeten.bp.ZonedDateTime;
-import org.threeten.bp.temporal.TemporalAccessor;
 
 /**
  * Constants associated with the Dexcom G4 Platinum receiver

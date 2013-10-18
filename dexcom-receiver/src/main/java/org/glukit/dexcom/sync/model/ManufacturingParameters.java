@@ -42,6 +42,21 @@ public class ManufacturingParameters {
   @JacksonXmlProperty(isAttribute=true, localName = "HardwareId")
   private String hardwareId;
 
+  public ManufacturingParameters() {
+  }
+
+  public ManufacturingParameters(String serialNumber,
+                                 String hardwarePartNumber,
+                                 String hardwareRevision,
+                                 String dateTimeCreated,
+                                 String hardwareId) {
+    this.serialNumber = serialNumber;
+    this.hardwarePartNumber = hardwarePartNumber;
+    this.hardwareRevision = hardwareRevision;
+    this.dateTimeCreated = dateTimeCreated;
+    this.hardwareId = hardwareId;
+  }
+
   public String getSerialNumber() {
     return serialNumber;
   }

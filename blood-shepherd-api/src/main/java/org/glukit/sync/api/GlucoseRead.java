@@ -39,11 +39,13 @@ public class GlucoseRead {
   private Instant internalTime;
   private LocalDateTime displayTime;
   private float value;
+  private Unit unit;
 
-  public GlucoseRead(Instant internalTime, LocalDateTime displayTime, float value) {
+  public GlucoseRead(Instant internalTime, LocalDateTime displayTime, float value, Unit unit) {
     this.internalTime = internalTime;
     this.displayTime = displayTime;
     this.value = value;
+    this.unit = unit;
   }
 
   public Instant getInternalTime() {
@@ -56,5 +58,13 @@ public class GlucoseRead {
 
   public float getValue() {
     return value;
+  }
+
+  public Unit getUnit() {
+    return unit;
+  }
+
+  public static enum Unit {
+    MMOL_PER_L, MG_PER_DL;
   }
 }

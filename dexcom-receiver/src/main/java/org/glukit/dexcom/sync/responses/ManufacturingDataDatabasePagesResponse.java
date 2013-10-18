@@ -27,8 +27,6 @@ import com.fasterxml.jackson.xml.XmlMapper;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.DataInputFactory;
-import org.glukit.dexcom.sync.DecodingUtils;
-import org.glukit.dexcom.sync.ResponseReader;
 import org.glukit.dexcom.sync.model.DatabasePage;
 import org.glukit.dexcom.sync.model.ManufacturingParameters;
 
@@ -38,9 +36,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.lang.String.format;
-import static org.glukit.dexcom.sync.DecodingUtils.*;
-import static org.glukit.dexcom.sync.ResponseReader.TRAILER_SIZE;
+import static org.glukit.dexcom.sync.DecodingUtils.validateCrc;
 
 /**
  * ManufacturingData {@link DatabasePagesResponse}

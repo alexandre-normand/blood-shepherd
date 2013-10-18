@@ -26,14 +26,11 @@ package org.glukit.dexcom.sync.responses;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.DataInputFactory;
-import org.glukit.dexcom.sync.DecodingUtils;
-import org.glukit.dexcom.sync.g4.DexcomG4Constants;
 import org.glukit.dexcom.sync.model.DatabasePage;
 import org.glukit.dexcom.sync.model.DatabasePageHeader;
 import org.glukit.dexcom.sync.model.GlucoseReadRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.threeten.bp.Instant;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
