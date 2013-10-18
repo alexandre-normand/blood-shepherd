@@ -87,7 +87,7 @@ public class DatabasePagesResponse extends GenericResponse {
 
         LOGGER.debug(format("Parsing page data from bytes [%s]", toHexString(pageData)));
         DatabasePage page = new DatabasePage(pageHeader, pageData);
-        LOGGER.info(format("Parsed page [%s]", new String(pageData, "UTF-8")));
+
         pages.add(page);
       }
     } catch (IOException e) {

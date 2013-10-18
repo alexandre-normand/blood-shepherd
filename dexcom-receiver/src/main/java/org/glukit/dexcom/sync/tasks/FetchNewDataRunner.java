@@ -30,6 +30,7 @@ import jssc.SerialPortException;
 import org.glukit.dexcom.sync.DataInputFactory;
 import org.glukit.dexcom.sync.DataOutputFactory;
 import org.glukit.dexcom.sync.ResponseReader;
+import org.glukit.dexcom.sync.model.RecordType;
 import org.glukit.dexcom.sync.requests.*;
 import org.glukit.dexcom.sync.responses.GenericResponse;
 import org.glukit.dexcom.sync.responses.PageRangeResponse;
@@ -44,6 +45,7 @@ import static java.lang.String.format;
 import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
 import static org.glukit.dexcom.sync.g4.DexcomG4Constants.*;
 import static org.glukit.dexcom.sync.model.RecordType.EGVData;
+import static org.glukit.dexcom.sync.model.RecordType.ManufacturingData;
 
 /**
  * Fetches the new data since last sync.
@@ -113,8 +115,9 @@ public class FetchNewDataRunner {
   }
 
   private PageRangeResponse readManufacturingDataPageRange(SerialPort serialPort) throws SerialPortException {
-    ReadDatabasePageRange readDatabasePageRange = new ReadManufacturingDataDatabasePageRange(this.dataOutputFactory);
-    byte[] packet = readDatabasePageRange.asBytes();
+    ReadDatabasePageRange readManufacturingDataPageRange =
+        new ReadDatabasePageRange(this.dataOutputFactory, ManufacturingData);
+    byte[] packet = readManufacturingDataPageRange.asBytes();
     LOGGER.info(format("Sending read database page range for manufacturing data: %s",
             toHexString(packet)));
     serialPort.writeBytes(packet);
@@ -128,8 +131,7 @@ public class FetchNewDataRunner {
   }
 
   private PageRangeResponse readGlucosePageRange(SerialPort serialPort) throws SerialPortException {
-    ReadGlucoseReadDatabasePageRange readGlucoseReadDatabasePageRange =
-            new ReadGlucoseReadDatabasePageRange(this.dataOutputFactory);
+    ReadDatabasePageRange readGlucoseReadDatabasePageRange = new ReadDatabasePageRange(this.dataOutputFactory, EGVData);
     byte[] packet = readGlucoseReadDatabasePageRange.asBytes();
     LOGGER.info(format("Sending read database page range for glucose reads: %s", toHexString(packet)));
     serialPort.writeBytes(packet);

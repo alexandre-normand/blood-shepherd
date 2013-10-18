@@ -14,10 +14,14 @@ import java.util.List;
 @EqualsAndHashCode
 public class DexcomSyncData {
   private List<GlucoseReadRecord> glucoseReads;
+  private List<UserEventRecord> userEvents;
   private ManufacturingParameters manufacturingParameters;
 
-  public DexcomSyncData(List<GlucoseReadRecord> glucoseReads, ManufacturingParameters manufacturingParameters) {
+  public DexcomSyncData(List<GlucoseReadRecord> glucoseReads,
+                        List<UserEventRecord> userEvents,
+                        ManufacturingParameters manufacturingParameters) {
     this.glucoseReads = glucoseReads;
+    this.userEvents = userEvents;
     this.manufacturingParameters = manufacturingParameters;
   }
 
@@ -27,5 +31,9 @@ public class DexcomSyncData {
 
   public ManufacturingParameters getManufacturingParameters() {
     return manufacturingParameters;
+  }
+
+  public List<UserEventRecord> getUserEvents() {
+    return userEvents;
   }
 }

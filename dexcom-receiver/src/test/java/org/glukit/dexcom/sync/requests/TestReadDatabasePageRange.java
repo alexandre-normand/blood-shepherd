@@ -26,21 +26,36 @@ package org.glukit.dexcom.sync.requests;
 import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
 import org.junit.Test;
 
+import static org.glukit.dexcom.sync.model.RecordType.*;
 import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 /**
- * Unit test of {@link ReadGlucoseReadDatabasePageRange}
+ * Unit test of {@link ReadDatabasePageRange}
  *
  * @author alexandre.normand
  */
-public class TestReadGlucoseReadDatabasePageRange {
+public class TestReadDatabasePageRange {
 
   @Test
   public void readGlucoseReadDatabasePageRangeShouldMatchExample() {
-    ReadGlucoseReadDatabasePageRange readGlucoseReadDatabasePageRange =
-            new ReadGlucoseReadDatabasePageRange(new LittleEndianDataOutputFactory());
+    ReadDatabasePageRange readGlucoseReadDatabasePageRange =
+            new ReadDatabasePageRange(new LittleEndianDataOutputFactory(), EGVData);
     assertThat(readGlucoseReadDatabasePageRange.asBytes(), equalTo(fromHexString("01 07 00 10 04 8b b8")));
+  }
+
+  @Test
+  public void readManufacturingDataDatabasePageRangeShouldMatchExample() {
+    ReadDatabasePageRange readManufacturingDataDatabasePageRange =
+        new ReadDatabasePageRange(new LittleEndianDataOutputFactory(), ManufacturingData);
+    assertThat(readManufacturingDataDatabasePageRange.asBytes(), equalTo(fromHexString("01 07 00 10 00 0F F8")));
+  }
+
+  @Test
+  public void readUserEventDataDatabasePageRangeShouldMatchExample() throws Exception {
+    ReadDatabasePageRange readUserEventDataDatabasePageRange =
+        new ReadDatabasePageRange(new LittleEndianDataOutputFactory(), UserEventData);
+    assertThat(readUserEventDataDatabasePageRange.asBytes(), equalTo(fromHexString("01 07 00 10 0b 64 49")));
   }
 }

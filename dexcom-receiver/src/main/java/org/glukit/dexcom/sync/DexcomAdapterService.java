@@ -7,20 +7,26 @@ import org.glukit.dexcom.sync.g4.DexcomG4Constants;
 import org.glukit.dexcom.sync.model.DexcomSyncData;
 import org.glukit.dexcom.sync.model.GlucoseReadRecord;
 import org.glukit.dexcom.sync.model.ManufacturingParameters;
+import org.glukit.dexcom.sync.model.UserEventRecord;
 import org.glukit.sync.AdapterService;
-import org.glukit.sync.api.DeviceInfo;
-import org.glukit.sync.api.GlucoseRead;
-import org.glukit.sync.api.SyncData;
+import org.glukit.sync.api.*;
+import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
 import org.threeten.bp.ZoneId;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.CARBS;
+import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.EXERCISE;
+import static org.glukit.dexcom.sync.model.UserEventRecord.UserEventType.INSULIN;
+import static org.glukit.sync.api.InsulinInjection.InsulinType.UNKNOWN;
 
 /**
  * This service adapts Dexcom-specific physical models to higher-level models.
@@ -41,6 +47,27 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
   };
 
   static final List<Integer> SPECIAL_GLUCOSE_VALUES = Arrays.asList(0, 1, 2, 3, 5, 6, 9, 10, 12);
+
+  private static final Predicate<UserEventRecord> INSULIN_EVENT_FILTER = new Predicate<UserEventRecord>() {
+    @Override
+    public boolean apply(@Nullable UserEventRecord input) {
+      return input.getEventType() == INSULIN;
+    }
+  };
+
+  private static final Predicate<UserEventRecord> EXERCISE_EVENT_FILTER = new Predicate<UserEventRecord>() {
+    @Override
+    public boolean apply(@Nullable UserEventRecord input) {
+      return input.getEventType() == EXERCISE;
+    }
+  };
+
+  private static final Predicate<UserEventRecord> CARB_EVENT_FILTER = new Predicate<UserEventRecord>() {
+    @Override
+    public boolean apply(@Nullable UserEventRecord input) {
+      return input.getEventType() == CARBS;
+    }
+  };
 
   private Function<Long, Instant> DEXCOM_SYSTEM_TIME_TO_INSTANT = new Function<Long, Instant>() {
     @Nullable
@@ -114,6 +141,85 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
         }
       };
 
+  private Function<UserEventRecord, InsulinInjection> USER_EVENT_RECORD_TO_INSULIN_INJECTION =
+      new Function<UserEventRecord, InsulinInjection>() {
+        @Override
+        public InsulinInjection apply(@javax.annotation.Nullable UserEventRecord insulinEvent) {
+          checkNotNull(insulinEvent, "insulinEvent should be non-null");
+          checkArgument(insulinEvent.getEventType() == INSULIN);
+
+          Instant internalTimeUTC =
+              DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(insulinEvent.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime eventLocalTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(insulinEvent.getEventTime());
+
+          float unitValue = insulinEvent.getEventValue() / 100.f;
+
+          return new InsulinInjection(internalTimeUTC, eventLocalTime, unitValue, UNKNOWN, "N/A");
+        }
+      };
+
+  private Function<UserEventRecord, FoodEvent> USER_EVENT_RECORD_TO_FOOD_EVENT =
+      new Function<UserEventRecord, FoodEvent>() {
+        @Override
+        public FoodEvent apply(@javax.annotation.Nullable UserEventRecord carbEvent) {
+          checkNotNull(carbEvent, "insulinEvent should be non-null");
+          checkArgument(carbEvent.getEventType() == CARBS);
+
+          Instant internalTimeUTC =
+              DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(carbEvent.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime eventLocalTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(carbEvent.getEventTime());
+
+          float unitValue = carbEvent.getEventValue();
+
+          return new FoodEvent(unitValue, 0f, internalTimeUTC, eventLocalTime);
+        }
+      };
+
+  private Function<UserEventRecord.ExerciseIntensity, ExerciseSession.Intensity> DEXCOM_EXERCISE_INTENSITY_TO_INTENSITY = new Function<UserEventRecord.ExerciseIntensity, ExerciseSession.Intensity>() {
+    @Nullable
+    @Override
+    public ExerciseSession.Intensity apply(@Nullable UserEventRecord.ExerciseIntensity exerciseIntensity) {
+      checkNotNull(exerciseIntensity, "exerciseIntensity should be non-null");
+
+      switch (exerciseIntensity) {
+        case LIGHT:
+          return ExerciseSession.Intensity.LIGHT;
+        case MEDIUM:
+          return ExerciseSession.Intensity.MEDIUM;
+        case HEAVY:
+          return ExerciseSession.Intensity.LIGHT;
+        default:
+          return null;
+      }
+    }
+  };
+
+  private Function<UserEventRecord, ExerciseSession> USER_EVENT_RECORD_TO_EXERCISE_SESSION =
+      new Function<UserEventRecord, ExerciseSession>() {
+        @Override
+        public ExerciseSession apply(@javax.annotation.Nullable UserEventRecord exerciseSession) {
+          checkNotNull(exerciseSession, "exerciseSession should be non-null");
+          checkArgument(exerciseSession.getEventType() == EXERCISE);
+
+          Instant internalTimeUTC =
+              DEXCOM_SYSTEM_TIME_TO_INSTANT.apply(exerciseSession.getInternalSecondsSinceDexcomEpoch());
+          LocalDateTime eventLocalTime =
+              DEXCOM_DISPLAY_TIME_TO_LOCAL_DATE_TIME.apply(exerciseSession.getEventTime());
+
+          long duration = exerciseSession.getEventValue();
+
+          UserEventRecord.ExerciseIntensity exerciseIntensity =
+              UserEventRecord.ExerciseIntensity.fromId(exerciseSession.getEventSubType());
+          ExerciseSession.Intensity intensity =
+              DEXCOM_EXERCISE_INTENSITY_TO_INTENSITY.apply(exerciseIntensity);
+
+          return new ExerciseSession(Duration.ofMinutes(duration), internalTimeUTC, eventLocalTime, intensity, "");
+        }
+      };
+
+
   @Override
   public SyncData convertData(DexcomSyncData source) {
     List<GlucoseRead> glucoseReads = newArrayList(Collections2.filter(Collections2.transform(source.getGlucoseReads(),
@@ -121,6 +227,17 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
 
     DeviceInfo deviceInfo = DEXCOM_MANUFACTURING_PARAMS_TO_DEVICE_INFO.apply(source.getManufacturingParameters());
 
-    return new SyncData(glucoseReads, deviceInfo);
+    Collection<UserEventRecord> insulinEvents = Collections2.filter(source.getUserEvents(), INSULIN_EVENT_FILTER);
+    Collection<UserEventRecord> exerciseEvents = Collections2.filter(source.getUserEvents(), EXERCISE_EVENT_FILTER);
+    Collection<UserEventRecord> carbEvents = Collections2.filter(source.getUserEvents(), CARB_EVENT_FILTER);
+
+    List<InsulinInjection> injections =
+        newArrayList(Collections2.transform(insulinEvents, USER_EVENT_RECORD_TO_INSULIN_INJECTION));
+    List<ExerciseSession> exerciseSessions =
+        newArrayList(Collections2.transform(exerciseEvents, USER_EVENT_RECORD_TO_EXERCISE_SESSION));
+    List<FoodEvent> foodEvents =
+        newArrayList(Collections2.transform(carbEvents, USER_EVENT_RECORD_TO_FOOD_EVENT));
+
+    return new SyncData(glucoseReads, injections, foodEvents, exerciseSessions, deviceInfo);
   }
 }

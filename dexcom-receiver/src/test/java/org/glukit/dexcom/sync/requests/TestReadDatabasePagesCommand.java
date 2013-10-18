@@ -26,9 +26,12 @@ package org.glukit.dexcom.sync.requests;
 import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
 import org.junit.Test;
 
+import static java.lang.String.format;
 import static org.glukit.dexcom.sync.DecodingUtils.fromHexString;
+import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
 import static org.glukit.dexcom.sync.model.RecordType.EGVData;
 import static org.glukit.dexcom.sync.model.RecordType.ManufacturingData;
+import static org.glukit.dexcom.sync.model.RecordType.UserEventData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
@@ -41,14 +44,23 @@ public class TestReadDatabasePagesCommand {
   @Test
   public void readDatabasePagesShouldMatchExample() throws Exception {
     ReadDatabasePagesCommand readDatabasePagesCommand =
-            new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), ManufacturingData, 0L, (byte) 1);
+        new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), ManufacturingData, 0L, (byte) 1);
     assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 00 00 00 00 00 01 6E 45")));
   }
 
   @Test
-    public void readGlucoseDatabasePagesShouldMatchExample() throws Exception {
-      ReadDatabasePagesCommand readDatabasePagesCommand =
-              new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), EGVData, 1465L, (byte) 4);
-      assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 04 B9 05 00 00 04 6D 29")));
-    }
+  public void readGlucoseDatabasePagesShouldMatchExample() throws Exception {
+    ReadDatabasePagesCommand readDatabasePagesCommand =
+        new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), EGVData, 1465L, (byte) 4);
+    assertThat(readDatabasePagesCommand.asBytes(), equalTo(fromHexString("01 0C 00 11 04 B9 05 00 00 04 6D 29")));
+  }
+
+  @Test
+  public void readUserEventDatabasePagesShouldMatchExample() throws Exception {
+    ReadDatabasePagesCommand readDatabasePagesCommand =
+        new ReadDatabasePagesCommand(new LittleEndianDataOutputFactory(), UserEventData, 1465L, (byte) 4);
+    String expectedHex = "01 0c 00 11 0b b9 05 00 00 04 6e ec";
+    assertThat(format("Expected [%s] but received [%s]", expectedHex, toHexString(readDatabasePagesCommand.asBytes())),
+        readDatabasePagesCommand.asBytes(), equalTo(fromHexString(expectedHex)));
+  }
 }

@@ -27,15 +27,21 @@ import org.glukit.dexcom.sync.DataOutputFactory;
 import org.glukit.dexcom.sync.model.ReceiverCommand;
 import org.glukit.dexcom.sync.model.RecordType;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * ReadDatabasePageRange request command.
  *
  * @author alexandre.normand
  */
-public abstract class ReadDatabasePageRange extends BaseCommand {
+public class ReadDatabasePageRange extends BaseCommand {
 
-  public ReadDatabasePageRange(DataOutputFactory dataOutputFactory) {
+  private final RecordType recordType;
+
+  public ReadDatabasePageRange(DataOutputFactory dataOutputFactory, RecordType recordType) {
     super(dataOutputFactory);
+    checkNotNull(recordType, "recordType should be non-null");
+    this.recordType = recordType;
   }
 
   @Override
@@ -45,8 +51,6 @@ public abstract class ReadDatabasePageRange extends BaseCommand {
 
   @Override
   protected byte[] getContent() {
-    return new byte[]{getRecordType().getId()};
+    return new byte[]{this.recordType.getId()};
   }
-
-  protected abstract RecordType getRecordType();
 }

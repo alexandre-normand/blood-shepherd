@@ -34,26 +34,15 @@ import org.threeten.bp.LocalDateTime;
  * @author alexandre.normand
  */
 @ToString
-@EqualsAndHashCode
-public class GlucoseRead {
-  private Instant internalTime;
-  private LocalDateTime displayTime;
+@EqualsAndHashCode(callSuper = true)
+public class GlucoseRead extends TimestampedEvent {
   private float value;
   private Unit unit;
 
-  public GlucoseRead(Instant internalTime, LocalDateTime displayTime, float value, Unit unit) {
-    this.internalTime = internalTime;
-    this.displayTime = displayTime;
+  public GlucoseRead(Instant internalTime, LocalDateTime localTime, float value, Unit unit) {
+    super(internalTime, localTime);
     this.value = value;
     this.unit = unit;
-  }
-
-  public Instant getInternalTime() {
-    return internalTime;
-  }
-
-  public LocalDateTime getDisplayTime() {
-    return displayTime;
   }
 
   public float getValue() {
