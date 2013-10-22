@@ -43,4 +43,16 @@ public class DeviceInfo {
     this.hardwareId = hardwareId;
     this.hardwareRevision = hardwareRevision;
   }
+
+  public String getSerialNumber() {
+    return serialNumber;
+  }
+
+  public String getHardwareId() {
+    return hardwareId;
+  }
+
+  public String getHardwareRevision() {
+    return hardwareRevision;
+  }
 }

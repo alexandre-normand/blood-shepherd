@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.usb.UsbServices;
 
 /**
- * That the daemon that will start the services.
+ * The daemon that will start the syncing services.
  *
  * @author alexandre.normand
  */

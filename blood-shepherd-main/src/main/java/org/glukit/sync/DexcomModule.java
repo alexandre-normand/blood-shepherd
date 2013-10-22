@@ -28,6 +28,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import org.glukit.dexcom.sync.*;
 import org.glukit.dexcom.sync.g4.DexcomG4DeviceFilter;
+import org.glukit.export.XmlDataExporter;
+import org.glukit.sync.api.DataExporter;
 
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
@@ -45,6 +47,8 @@ public class DexcomModule extends AbstractModule {
 
     bind(DataOutputFactory.class).to(LittleEndianDataOutputFactory.class);
     bind(DataInputFactory.class).to(LittleEndianDataInputFactory.class);
+    bind(AdapterService.class).to(DexcomAdapterService.class);
+    bind(DataExporter.class).to(XmlDataExporter.class);
   }
 
   @Provides

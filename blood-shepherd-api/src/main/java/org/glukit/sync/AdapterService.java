@@ -1,5 +1,6 @@
 package org.glukit.sync;
 
+import org.glukit.sync.api.ReceiverSyncData;
 import org.glukit.sync.api.SyncData;
 
 /**
@@ -8,6 +9,6 @@ import org.glukit.sync.api.SyncData;
  *
  * @author alexandre.normand
  */
-public interface AdapterService<T> {
+public interface AdapterService<T extends ReceiverSyncData> {
   SyncData convertData(T source);
 }

@@ -26,7 +26,12 @@ package org.glukit.dexcom.sync;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import jssc.SerialPort;
+import org.glukit.dexcom.sync.model.DexcomSyncData;
 import org.glukit.dexcom.sync.tasks.FetchNewDataRunner;
+import org.glukit.sync.AdapterService;
+import org.glukit.sync.api.DataExporter;
+import org.glukit.sync.api.ReceiverSyncData;
+import org.glukit.sync.api.SyncData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
@@ -49,14 +54,20 @@ public class DexcomWatcher implements UsbServicesListener {
   private final DeviceFilter deviceFilter;
   private final DexcomReceiverFinder receiverFinder;
   private final FetchNewDataRunner fetchNewDataRunner;
+  private final AdapterService adapterService;
+  private final DataExporter dataExporter;
 
   @Inject
   public DexcomWatcher(DeviceFilter deviceFilter,
                        DexcomReceiverFinder receiverFinder,
-                       FetchNewDataRunner fetchNewDataRunner) {
+                       FetchNewDataRunner fetchNewDataRunner,
+                       AdapterService adapterService,
+                       DataExporter dataExporter) {
     this.deviceFilter = deviceFilter;
     this.receiverFinder = receiverFinder;
     this.fetchNewDataRunner = fetchNewDataRunner;
+    this.adapterService = adapterService;
+    this.dataExporter = dataExporter;
   }
 
   @Override
@@ -71,8 +82,16 @@ public class DexcomWatcher implements UsbServicesListener {
 
         String receiverPort = this.receiverFinder.findReceiverPort();
 
-        // TODO: store time of last sync
-        this.fetchNewDataRunner.fetchData(new SerialPort(receiverPort), Instant.now());
+        Instant since = Instant.now();
+        LOGGER.info(format("Downloading new data since %s...", since));
+        ReceiverSyncData receiverSyncData = this.fetchNewDataRunner.fetchData(new SerialPort(receiverPort), since);
+
+        @SuppressWarnings("unchecked")
+        SyncData syncData = this.adapterService.convertData(receiverSyncData);
+
+        this.dataExporter.exportData(syncData);
+
+        LOGGER.info(format("Exported data up to %s", receiverSyncData.getUpdateTime()));
       } catch (Exception e) {
         Throwables.propagate(e);
       }

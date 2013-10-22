@@ -23,6 +23,11 @@
             <artifactId>dexcom-receiver</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>blood-shepherd</groupId>
+            <artifactId>blood-shepherd-exporters</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

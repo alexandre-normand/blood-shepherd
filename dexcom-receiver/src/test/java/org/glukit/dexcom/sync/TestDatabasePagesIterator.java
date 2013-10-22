@@ -34,7 +34,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Unit test of {@link DatabasePagesBuilder}
+ * Unit test of {@link DatabasePagesPager}
  *
  * @author alexandre.normand
  */
@@ -42,7 +42,7 @@ public class TestDatabasePagesIterator {
 
   @Test
   public void firstAndLastPageTheSameShouldReturnSingleElementOf1Page() throws Exception {
-    DatabasePagesBuilder planner = new DatabasePagesBuilder(147, 147);
+    DatabasePagesPager planner = new DatabasePagesPager(147, 147);
 
     Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
     assertThat(iterator.hasNext(), is(true));
@@ -52,7 +52,7 @@ public class TestDatabasePagesIterator {
 
   @Test
   public void firstAndLastPageConsecutiveShouldSingleElementOf2Pages() throws Exception {
-    DatabasePagesBuilder planner = new DatabasePagesBuilder(146, 147);
+    DatabasePagesPager planner = new DatabasePagesPager(146, 147);
 
     Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
     assertThat(iterator.hasNext(), is(true));
@@ -61,7 +61,7 @@ public class TestDatabasePagesIterator {
 
   @Test
   public void twoElementsWithFirstOneOfFourPages() throws Exception {
-    DatabasePagesBuilder planner = new DatabasePagesBuilder(140, 144);
+    DatabasePagesPager planner = new DatabasePagesPager(140, 144);
 
     Iterator<DatabaseReadRequestSpec> iterator = planner.iterator();
     assertThat(iterator.hasNext(), is(true));

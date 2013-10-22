@@ -33,17 +33,17 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.glukit.dexcom.sync.model.DatabaseReadRequestSpec.MAX_PAGES_PER_COMMAND;
 
 /**
- * Iterator to go through all pages of a database. This uses the data from a
+ * Pager/iterator to go through all pages of a database. This uses the data from a
  * {@link org.glukit.dexcom.sync.responses.PageRangeResponse} and returns an iterator that will
  * go over all {@link DatabaseReadRequestSpec}s required to read all of it.
  *
  * @author alexandre.normand
  */
-public class DatabasePagesBuilder implements Iterable<DatabaseReadRequestSpec> {
+public class DatabasePagesPager implements Iterable<DatabaseReadRequestSpec> {
   private long firstPage;
   private long lastPage;
 
-  public DatabasePagesBuilder(long firstPage, long lastPage) {
+  public DatabasePagesPager(long firstPage, long lastPage) {
     this.firstPage = firstPage;
     this.lastPage = lastPage;
   }

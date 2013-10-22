@@ -248,6 +248,6 @@ public class DexcomAdapterService implements AdapterService<DexcomSyncData> {
     List<FoodEvent> foodEvents =
         newArrayList(Collections2.transform(carbEvents, USER_EVENT_RECORD_TO_FOOD_EVENT));
 
-    return new SyncData(glucoseReads, injections, foodEvents, exerciseSessions, deviceInfo);
+    return new SyncData(glucoseReads, injections, foodEvents, exerciseSessions, deviceInfo, source.getUpdateTime());
   }
 }

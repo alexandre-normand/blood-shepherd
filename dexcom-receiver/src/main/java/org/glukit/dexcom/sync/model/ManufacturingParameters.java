@@ -23,7 +23,8 @@
 
 package org.glukit.dexcom.sync.model;
 
-import com.fasterxml.jackson.xml.annotate.JacksonXmlProperty;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Manufacturing data structure.

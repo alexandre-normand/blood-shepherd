@@ -23,7 +23,7 @@
 
 package org.glukit.dexcom.sync.responses;
 
-import com.fasterxml.jackson.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Throwables;
 import com.google.common.primitives.UnsignedInts;
 import org.glukit.dexcom.sync.DataInputFactory;

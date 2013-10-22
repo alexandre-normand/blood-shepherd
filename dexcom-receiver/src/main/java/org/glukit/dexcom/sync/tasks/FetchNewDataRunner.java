@@ -29,23 +29,24 @@ import jssc.SerialPort;
 import jssc.SerialPortException;
 import org.glukit.dexcom.sync.DataInputFactory;
 import org.glukit.dexcom.sync.DataOutputFactory;
+import org.glukit.dexcom.sync.DatabasePagesPager;
 import org.glukit.dexcom.sync.ResponseReader;
-import org.glukit.dexcom.sync.model.RecordType;
+import org.glukit.dexcom.sync.model.*;
 import org.glukit.dexcom.sync.requests.*;
-import org.glukit.dexcom.sync.responses.GenericResponse;
-import org.glukit.dexcom.sync.responses.PageRangeResponse;
-import org.glukit.dexcom.sync.responses.Utf8PayloadGenericResponse;
+import org.glukit.dexcom.sync.responses.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
 
-import java.util.Map;
+import java.util.List;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static org.glukit.dexcom.sync.DecodingUtils.toHexString;
 import static org.glukit.dexcom.sync.g4.DexcomG4Constants.*;
 import static org.glukit.dexcom.sync.model.RecordType.EGVData;
 import static org.glukit.dexcom.sync.model.RecordType.ManufacturingData;
+import static org.glukit.dexcom.sync.model.RecordType.UserEventData;
 
 /**
  * Fetches the new data since last sync.
@@ -68,9 +69,15 @@ public class FetchNewDataRunner {
   }
 
 
-  public Map<String, String> fetchData(SerialPort serialPort, Instant since) {
+  /**
+   * Fetches the data from the dexcom
+   *
+   * @param serialPort the serial port of the dexcom receiver
+   * @param since      unused at the moment, this optimization might come later
+   * @return the synced data, it's the whole thing of what's still in the receiver memory.
+   */
+  public DexcomSyncData fetchData(SerialPort serialPort, Instant since) {
     try {
-      // TODO: This opening/closing of ports should be wrapped in some class
       serialPort.openPort();
       if (!serialPort.isOpened()) {
         throw new RuntimeException("Can't open receiver to get the data.");
@@ -79,28 +86,108 @@ public class FetchNewDataRunner {
       LOGGER.info(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
       serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
-      LOGGER.info(format("This will eventually get the data since %s", since.toString()));
+      ManufacturingParameters manufacturingData = getManufacturingData(serialPort);
+      List<GlucoseReadRecord> glucoseReads = getGlucoseReads(serialPort);
+      List<UserEventRecord> userEvents = getUserEvents(serialPort);
 
-      Utf8PayloadGenericResponse firmwareHeader = readFirmwareHeader(serialPort);
-      PageRangeResponse manufacturingDataPageRange = readManufacturingDataPageRange(serialPort);
-      PageRangeResponse glucosePageRange = readGlucosePageRange(serialPort);
-
-      ReadDatabasePagesCommand readDatabasePagesCommand =
-              new ReadDatabasePagesCommand(this.dataOutputFactory, EGVData, glucosePageRange.getFirstPage(),
-                      (byte) (6));
-      byte[] packet = readDatabasePagesCommand.asBytes();
-      LOGGER.info(format("Sending read database pages for glucose reads: %s", toHexString(packet)));
-      serialPort.writeBytes(packet);
-
-      GenericResponse genericResponse =
-              this.responseReader.read(GenericResponse.class, serialPort);
-      LOGGER.info(format("Response for database pages of glucose reads: [%s]",
-              toHexString(genericResponse.getPayload())));
+      return new DexcomSyncData(glucoseReads, userEvents, manufacturingData);
     } catch (SerialPortException e) {
       throw Throwables.propagate(e);
     }
-    return null;
   }
+
+  private ManufacturingParameters getManufacturingData(SerialPort serialPort) throws SerialPortException {
+    ManufacturingParameters manufacturingData = null;
+
+    DatabasePagesPager manufacturingDataPager = getPagerForRecordType(serialPort, ManufacturingData);
+
+    for (DatabaseReadRequestSpec readRequestSpec : manufacturingDataPager) {
+      ManufacturingDataDatabasePagesResponse manufacturingDataDbResponse =
+              readDatabasePage(ManufacturingDataDatabasePagesResponse.class,
+                      serialPort, readRequestSpec, ManufacturingData);
+
+      // We're assuming we'll always have just one or that the most recent is always going to be the one
+      // we want to keep.
+      List<ManufacturingParameters> manufacturingParameters =
+              manufacturingDataDbResponse.getManufacturingParameters();
+      if (!manufacturingParameters.isEmpty()) {
+        manufacturingData = manufacturingParameters.iterator().next();
+      }
+    }
+
+    return manufacturingData;
+  }
+
+  private DatabasePagesPager getPagerForRecordType(SerialPort serialPort,
+                                                   RecordType recordType) throws SerialPortException {
+    PageRangeResponse pageRange = readManufacturingDataPageRange(serialPort, recordType);
+    return new DatabasePagesPager(pageRange.getFirstPage(), pageRange.getLastPage());
+  }
+
+  private <T extends DatabasePagesResponse> T readDatabasePage(Class<T> responseClass,
+                                                               SerialPort serialPort,
+                                                               DatabaseReadRequestSpec readRequestSpec,
+                                                               RecordType recordType)
+          throws SerialPortException {
+    ReadDatabasePagesCommand readDatabasePagesCommand =
+            new ReadDatabasePagesCommand(this.dataOutputFactory, recordType, readRequestSpec.getStartPage(),
+                    readRequestSpec.getNumberOfPages());
+
+    byte[] packet = readDatabasePagesCommand.asBytes();
+    LOGGER.info(format("Sending read database pages for %s: %s", recordType.name(), toHexString(packet)));
+    serialPort.writeBytes(packet);
+
+    return this.responseReader.read(responseClass, serialPort);
+  }
+
+  private PageRangeResponse readManufacturingDataPageRange(SerialPort serialPort,
+                                                           RecordType recordType) throws SerialPortException {
+    ReadDatabasePageRange readDatabasePageRange =
+            new ReadDatabasePageRange(this.dataOutputFactory, recordType);
+    byte[] packet = readDatabasePageRange.asBytes();
+    LOGGER.info(format("Sending read database page range for %s: %s", recordType.name(),
+            toHexString(packet)));
+    serialPort.writeBytes(packet);
+
+    PageRangeResponse pageRangeResponse =
+            this.responseReader.read(PageRangeResponse.class, serialPort);
+    LOGGER.info(format("Page range for %s: [%d] to [%d]", recordType.name(), pageRangeResponse.getFirstPage(),
+            pageRangeResponse.getLastPage()));
+
+    return pageRangeResponse;
+  }
+
+  private List<GlucoseReadRecord> getGlucoseReads(SerialPort serialPort) throws SerialPortException {
+    List<GlucoseReadRecord> fullGlucoseReadRecords = newArrayList();
+
+    DatabasePagesPager manufacturingDataPager = getPagerForRecordType(serialPort, EGVData);
+
+    for (DatabaseReadRequestSpec readRequestSpec : manufacturingDataPager) {
+      GlucoseReadsDatabasePagesResponse glucoseReadResponse =
+              readDatabasePage(GlucoseReadsDatabasePagesResponse.class, serialPort, readRequestSpec, EGVData);
+
+      List<GlucoseReadRecord> glucoseReadRecords = glucoseReadResponse.getRecords();
+      fullGlucoseReadRecords.addAll(glucoseReadRecords);
+    }
+
+    return fullGlucoseReadRecords;
+  }
+
+  private List<UserEventRecord> getUserEvents(SerialPort serialPort) throws SerialPortException {
+      List<UserEventRecord> allUserEvents = newArrayList();
+
+      DatabasePagesPager manufacturingDataPager = getPagerForRecordType(serialPort, UserEventData);
+
+      for (DatabaseReadRequestSpec readRequestSpec : manufacturingDataPager) {
+        UserEventsDatabasePagesResponse userEventRecordPage =
+                readDatabasePage(UserEventsDatabasePagesResponse.class, serialPort, readRequestSpec, UserEventData);
+
+        List<UserEventRecord> glucoseReadRecords = userEventRecordPage.getRecords();
+        allUserEvents.addAll(glucoseReadRecords);
+      }
+
+      return allUserEvents;
+    }
 
   private Utf8PayloadGenericResponse readFirmwareHeader(SerialPort serialPort) throws SerialPortException {
     ReadFirmwareHeader readFirmwareHeader = new ReadFirmwareHeader(this.dataOutputFactory);
@@ -112,22 +199,6 @@ public class FetchNewDataRunner {
             this.responseReader.read(Utf8PayloadGenericResponse.class, serialPort);
     LOGGER.info(format("Receiver plugged with firmware: %s", utf8PayloadGenericResponse.asString()));
     return utf8PayloadGenericResponse;
-  }
-
-  private PageRangeResponse readManufacturingDataPageRange(SerialPort serialPort) throws SerialPortException {
-    ReadDatabasePageRange readManufacturingDataPageRange =
-        new ReadDatabasePageRange(this.dataOutputFactory, ManufacturingData);
-    byte[] packet = readManufacturingDataPageRange.asBytes();
-    LOGGER.info(format("Sending read database page range for manufacturing data: %s",
-            toHexString(packet)));
-    serialPort.writeBytes(packet);
-
-    PageRangeResponse pageRangeResponse =
-            this.responseReader.read(PageRangeResponse.class, serialPort);
-    LOGGER.info(format("Page range for manufacturing data: [%d] to [%d]", pageRangeResponse.getFirstPage(),
-            pageRangeResponse.getLastPage()));
-
-    return pageRangeResponse;
   }
 
   private PageRangeResponse readGlucosePageRange(SerialPort serialPort) throws SerialPortException {

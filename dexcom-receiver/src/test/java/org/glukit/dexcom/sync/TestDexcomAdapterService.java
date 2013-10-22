@@ -41,6 +41,7 @@ public class TestDexcomAdapterService {
   private static final List<UserEventRecord> EMPTY_USER_EVENT_RECORDS = Collections.emptyList();
   private static final List<FoodEvent> EMPTY_FOOD_EVENTS = Collections.emptyList();
   private static final List<ExerciseSession> EMPTY_EXERCISE_SESSIONS = Collections.emptyList();
+  private static final Instant TEST_TIME = Instant.ofEpochMilli(100L);
 
   @Test
   public void noReadsShouldConvertSuccessfully() throws Exception {
@@ -49,10 +50,11 @@ public class TestDexcomAdapterService {
     SyncData syncData = dexcomAdapterService.convertData(
         new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
             EMPTY_USER_EVENT_RECORDS,
-            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+                TEST_TIME));
 
     SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
-        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION), TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -62,7 +64,8 @@ public class TestDexcomAdapterService {
     DexcomAdapterService dexcomAdapterService = new DexcomAdapterService();
     List<GlucoseReadRecord> glucoseRecords = Arrays.asList(new GlucoseReadRecord(1000, 1000, NORMAL_READ_TEST_VALUE, (byte) 0, 1L, 1L));
     SyncData syncData = dexcomAdapterService.convertData(new DexcomSyncData(glucoseRecords, EMPTY_USER_EVENT_RECORDS,
-        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+            TEST_TIME));
 
     GlucoseRead expectedRead = new GlucoseRead(
         internalTimeFromSeconds(1000L),
@@ -70,7 +73,7 @@ public class TestDexcomAdapterService {
         NORMAL_READ_TEST_VALUE.floatValue(),
         GlucoseRead.Unit.MG_PER_DL);
     SyncData expectedSyncData = new SyncData(Arrays.asList(expectedRead), EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
-        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION), TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -81,7 +84,8 @@ public class TestDexcomAdapterService {
     List<GlucoseReadRecord> glucoseRecords = Arrays.asList(new GlucoseReadRecord(1000, 1000, NORMAL_READ_TEST_VALUE, (byte) 0, 1L, 1L),
         new GlucoseReadRecord(2000, 2000, NORMAL_READ_TEST_VALUE, (byte) 0, 1L, 1L));
     SyncData syncData = dexcomAdapterService.convertData(new DexcomSyncData(glucoseRecords, EMPTY_USER_EVENT_RECORDS,
-        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+            TEST_TIME));
 
     GlucoseRead expectedRead1 = new GlucoseRead(
         internalTimeFromSeconds(1000L),
@@ -95,7 +99,8 @@ public class TestDexcomAdapterService {
         NORMAL_READ_TEST_VALUE.floatValue(),
         GlucoseRead.Unit.MG_PER_DL);
     SyncData expectedSyncData = new SyncData(Arrays.asList(expectedRead1, expectedRead2), EMPTY_INSULIN_INJECTIONS,
-        EMPTY_FOOD_EVENTS, EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_FOOD_EVENTS, EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION),
+            TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -105,10 +110,11 @@ public class TestDexcomAdapterService {
     DexcomAdapterService dexcomAdapterService = new DexcomAdapterService();
     List<GlucoseReadRecord> glucoseRecords = Arrays.asList(new GlucoseReadRecord(1000, 1000, 32781, (byte) 0, 1L, 1L));
     SyncData syncData = dexcomAdapterService.convertData(new DexcomSyncData(glucoseRecords, EMPTY_USER_EVENT_RECORDS,
-        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+        new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+            TEST_TIME));
 
     SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
-        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION), TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -122,10 +128,11 @@ public class TestDexcomAdapterService {
       List<GlucoseReadRecord> glucoseRecords = Arrays.asList(new GlucoseReadRecord(1000, 1000, specialGlucoseValue,
           (byte) 0, 1L, 1L));
       SyncData syncData = dexcomAdapterService.convertData(new DexcomSyncData(glucoseRecords, EMPTY_USER_EVENT_RECORDS,
-          new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+          new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+              TEST_TIME));
 
       SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
-          EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+          EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION), TEST_TIME);
 
       assertThat(format("Glucose value [%d] should not be included in the conversion result", specialGlucoseValue),
           syncData, is(equalTo(expectedSyncData)));
@@ -139,12 +146,13 @@ public class TestDexcomAdapterService {
     SyncData syncData = dexcomAdapterService.convertData(
         new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
             Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.INSULIN, (byte) 0, 350)),
-            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+                TEST_TIME));
 
     InsulinInjection expectedInsulinInjection = new InsulinInjection(internalTimeFromSeconds(1000L),
         localDateTimeFromSeconds(2000L), localDateTimeFromSeconds(1500L), 3.5f, UNKNOWN, UNAVAILABLE_INSULIN_NAME);
     SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, Arrays.asList(expectedInsulinInjection), EMPTY_FOOD_EVENTS,
-        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION), TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -157,13 +165,15 @@ public class TestDexcomAdapterService {
         new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
             Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.EXERCISE,
                 UserEventRecord.ExerciseIntensity.LIGHT.getId(), 10)),
-            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+                TEST_TIME));
 
     ExerciseSession expectedExerciseSession = new ExerciseSession(internalTimeFromSeconds(1000L),
         localDateTimeFromSeconds(2000L), localDateTimeFromSeconds(1500L), ExerciseSession.Intensity.LIGHT,
         Duration.ofMinutes(10), ExerciseSession.EMPTY_DESCRIPTION);
     SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, EMPTY_FOOD_EVENTS,
-        Arrays.asList(expectedExerciseSession), new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        Arrays.asList(expectedExerciseSession), new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION),
+            TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
@@ -176,12 +186,14 @@ public class TestDexcomAdapterService {
         new DexcomSyncData(EMPTY_GLUCOSE_READ_RECORDS,
             Arrays.asList(new UserEventRecord(1000L, 2000L, 1500L, UserEventRecord.UserEventType.CARBS,
                 (byte) 0, 12)),
-            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID)));
+            new ManufacturingParameters(SERIAL_NUMBER, "partNumber", HARDWARE_REVISION, "2013-10-18 10:10", HARDWARE_ID),
+                TEST_TIME));
 
     FoodEvent foodEvent = new FoodEvent(internalTimeFromSeconds(1000L), localDateTimeFromSeconds(2000L),
         localDateTimeFromSeconds(1500L), 12f, 0f);
     SyncData expectedSyncData = new SyncData(EMPTY_GLUCOSE_READS, EMPTY_INSULIN_INJECTIONS, Arrays.asList(foodEvent),
-        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION));
+        EMPTY_EXERCISE_SESSIONS, new DeviceInfo(SERIAL_NUMBER, HARDWARE_ID, HARDWARE_REVISION),
+            TEST_TIME);
 
     assertThat(syncData, is(equalTo(expectedSyncData)));
   }
