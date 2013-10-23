@@ -31,6 +31,18 @@ public class InsulinInjection extends TimestampedEvent {
     this.unitValue = unitValue;
   }
 
+  public String getInsulinName() {
+    return insulinName;
+  }
+
+  public InsulinType getInsulinType() {
+    return insulinType;
+  }
+
+  public float getUnitValue() {
+    return unitValue;
+  }
+
   public static enum InsulinType {
     SLOW_ACTING, FAST_ACTING, UNKNOWN
   }

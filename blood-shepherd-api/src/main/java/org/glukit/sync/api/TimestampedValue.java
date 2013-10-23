@@ -32,6 +32,6 @@ public abstract class TimestampedValue implements Comparable<TimestampedValue> {
 
   @Override
   public int compareTo(TimestampedValue other) {
-    return other.internalTime.compareTo(this.internalTime);
+    return this.internalTime.compareTo(other.internalTime);
   }
 }
