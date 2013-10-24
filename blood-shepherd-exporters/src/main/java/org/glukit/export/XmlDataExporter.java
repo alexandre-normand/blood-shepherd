@@ -48,7 +48,7 @@ public class XmlDataExporter implements DataExporter {
   static {
     DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
     builder.parseCaseInsensitive();
-    builder.appendPattern("yyyy-mm-dd HH:mm:ss");
+    builder.appendPattern("yyyy-MM-dd HH:mm:ss");
 
 
     dateTimeFormatter = builder.toFormatter().withZone(ZoneId.of("UTC"));

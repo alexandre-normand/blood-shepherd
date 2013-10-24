@@ -93,7 +93,7 @@ public class DexcomWatcher implements UsbServicesListener {
 
         LOGGER.info(format("Exported data up to %s", receiverSyncData.getUpdateTime()));
       } catch (Exception e) {
-        Throwables.propagate(e);
+        throw Throwables.propagate(e);
       }
     } else {
       String message = format("Device plugged was ignored: vendor id [%d], product id [%d]", deviceDescriptor.idVendor(),
