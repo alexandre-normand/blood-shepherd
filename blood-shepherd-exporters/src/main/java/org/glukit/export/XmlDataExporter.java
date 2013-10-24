@@ -157,7 +157,7 @@ public class XmlDataExporter implements DataExporter {
   }
 
   private OutputStream getOutputStream(File destinationDirectory, SyncData syncData) throws FileNotFoundException {
-    String fileName = format("blood-shepherd-export-%s", syncData.getUpdateTime().toEpochMilli());
+    String fileName = format("blood-shepherd-export-%s.xml", syncData.getUpdateTime().toEpochMilli());
     return new FileOutputStream(new File(destinationDirectory, fileName), false);
   }
 

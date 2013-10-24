@@ -15,6 +15,7 @@
         <module>blood-shepherd-api</module>
         <module>blood-shepherd-exporters</module>
         <module>blood-shepherd-main</module>
+        <module>blood-shepherd-app</module>
     </modules>
 
     <properties>
