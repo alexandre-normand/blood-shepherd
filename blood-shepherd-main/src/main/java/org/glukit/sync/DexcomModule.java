@@ -29,6 +29,7 @@ import com.google.inject.Provides;
 import org.glukit.dexcom.sync.*;
 import org.glukit.dexcom.sync.g4.DexcomG4DeviceFilter;
 import org.glukit.export.XmlDataExporter;
+import org.glukit.sync.api.BloodShepherdProperties;
 import org.glukit.sync.api.DataExporter;
 
 import javax.usb.UsbException;
@@ -41,6 +42,13 @@ import javax.usb.UsbServices;
  * @author alexandre.normand
  */
 public class DexcomModule extends AbstractModule {
+
+  private final BloodShepherdProperties properties;
+
+  public DexcomModule(BloodShepherdProperties properties) {
+    this.properties = properties;
+  }
+
   @Override
   protected void configure() {
     bind(DeviceFilter.class).to(DexcomG4DeviceFilter.class);
@@ -60,5 +68,10 @@ public class DexcomModule extends AbstractModule {
       Throwables.propagate(e);
     }
     return usbServices;
+  }
+
+  @Provides
+  BloodShepherdProperties provideBloodShepherdProperties() {
+    return properties;
   }
 }

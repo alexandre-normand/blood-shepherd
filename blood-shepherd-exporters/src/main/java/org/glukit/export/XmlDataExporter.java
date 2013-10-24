@@ -16,15 +16,17 @@ import org.threeten.bp.format.DateTimeFormatter;
 import org.threeten.bp.format.DateTimeFormatterBuilder;
 
 import javax.annotation.Nullable;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
+import javax.inject.Inject;
+import java.io.*;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static java.util.Collections.sort;
+import static org.glukit.sync.api.BloodShepherdProperties.OUTPUT_PATH;
 
 /**
  * Exports the data as a XML file resembling the Dexcom Studio files.
@@ -32,10 +34,16 @@ import static java.util.Collections.sort;
  * @author alexandre.normand
  */
 public class XmlDataExporter implements DataExporter {
-
   private static DateTimeFormatter dateTimeFormatter;
 
   private PrintStream printStream;
+
+  private BloodShepherdProperties properties;
+
+  @Inject
+  public XmlDataExporter(BloodShepherdProperties properties) {
+    this.properties = properties;
+  }
 
   static {
     DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
@@ -115,17 +123,14 @@ public class XmlDataExporter implements DataExporter {
                   }
                 };
 
-  public XmlDataExporter() {
-
-  }
-
-  @VisibleForTesting
-  void setPrintStream(PrintStream printStream) {
-    this.printStream = printStream;
-  }
-
   @Override
   public void exportData(SyncData syncData) {
+    String outputPath = properties.getProperty(OUTPUT_PATH);
+    checkNotNull(outputPath, "Missing %s in properties", OUTPUT_PATH);
+    File outputDirectory = new File(outputPath);
+    checkState(outputDirectory.exists(), "Invalid destination: %s doesn't exist", outputPath);
+    checkState(outputDirectory.isDirectory(), "Invalid destination: %s is not a directory", outputPath);
+
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true);
     ObjectWriter objectWriter = xmlMapper.writerWithDefaultPrettyPrinter();
@@ -143,7 +148,7 @@ public class XmlDataExporter implements DataExporter {
     patientData.EventMarker = eventMarkers;
 
     try {
-      PrintStream outputStream = getOutputStream(syncData);
+      OutputStream outputStream = getOutputStream(outputDirectory, syncData);
       objectWriter.writeValue(outputStream, patientData);
       outputStream.close();
     } catch (IOException e) {
@@ -151,16 +156,9 @@ public class XmlDataExporter implements DataExporter {
     }
   }
 
-  private PrintStream getOutputStream(SyncData syncData) throws FileNotFoundException {
-    if (this.printStream == null) {
-
-//      String filename = format("export-%s", syncData.getUpdateTime());
-//      File outputFile = new File(".", filename);
-//      return new PrintStream(outputFile);
-      return System.out;
-    } else {
-      return this.printStream;
-    }
+  private OutputStream getOutputStream(File destinationDirectory, SyncData syncData) throws FileNotFoundException {
+    String fileName = format("blood-shepherd-export-%s", syncData.getUpdateTime().toEpochMilli());
+    return new FileOutputStream(new File(destinationDirectory, fileName), false);
   }
 
   public static final class PatientData {

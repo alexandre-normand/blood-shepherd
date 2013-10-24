@@ -23,16 +23,22 @@
 
 package org.glukit.sync;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.*;
+import com.beust.jcommander.converters.FileConverter;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.glukit.dexcom.sync.DexcomDaemon;
+import org.glukit.export.XmlDataExporter;
+import org.glukit.sync.api.BloodShepherdProperties;
 
 import javax.usb.UsbException;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkState;
+import static java.lang.String.format;
 
 /**
  * Main class for the bloodsucker sync dexcomDaemon.
@@ -40,16 +46,23 @@ import java.util.concurrent.TimeUnit;
  * @author alexandre.normand
  */
 public class DexcomReceiverSyncService {
+  @Parameter(names = "-outputPath", required = true,
+          description = "the output path of the exported files (make it something under your google drive local sync directory",
+          validateWith = ExistingDirectoryValidator.class)
+  String outputPath;
 
-  private DexcomDaemon dexcomDaemon;
+  public DexcomReceiverSyncService() {
 
-  @Inject
-  public DexcomReceiverSyncService(DexcomDaemon dexcomDaemon) {
-    this.dexcomDaemon = dexcomDaemon;
   }
 
   public void run() {
-    this.dexcomDaemon.start();
+    BloodShepherdProperties properties = new BloodShepherdProperties();
+    properties.putAll(System.getProperties());
+    properties.put(BloodShepherdProperties.OUTPUT_PATH, this.outputPath);
+    Injector injector = Guice.createInjector(new DexcomModule(properties));
+    final DexcomDaemon dexcomDaemon = injector.getInstance(DexcomDaemon.class);
+
+    dexcomDaemon.start();
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -63,18 +76,36 @@ public class DexcomReceiverSyncService {
   }
 
   public static void main(String[] args) throws UsbException {
-    Injector injector = Guice.createInjector(new DexcomModule());
-    DexcomReceiverSyncService dexcomReceiverSyncService = injector.getInstance(DexcomReceiverSyncService.class);
-
-    JCommander jCommander = new JCommander(dexcomReceiverSyncService, args);
+    DexcomReceiverSyncService dexcomReceiverSyncService = new DexcomReceiverSyncService();
+    JCommander jCommander = new JCommander(dexcomReceiverSyncService);
     try {
       jCommander.parse(args);
     } catch (ParameterException e) {
+      System.err.println(e.getMessage());
       jCommander.usage();
       System.exit(1);
     }
 
     dexcomReceiverSyncService.run();
+  }
+
+  public static class ExistingDirectoryValidator implements IParameterValidator2 {
+    @Override
+    public void validate(String name, String value, ParameterDescription pd) throws ParameterException {
+      validate(name, value);
+    }
+
+    @Override
+    public void validate(String name, String value) throws ParameterException {
+      File outputDirectory = new File(value);
+      if (!outputDirectory.exists()) {
+        throw new ParameterException(format("Invalid destination: %s doesn't exist", value));
+      }
+
+      if (!outputDirectory.isDirectory()) {
+        throw new ParameterException(format("Invalid destination: %s is not a directory", value));
+      }
+    }
   }
 
 }

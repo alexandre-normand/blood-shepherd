@@ -23,6 +23,8 @@
 
 package org.glukit.sync.api;
 
+import java.util.Properties;
+
 /**
  * DataExporter interface. Implement this to export the data read from your receiver.
  *

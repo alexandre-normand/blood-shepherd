@@ -1,10 +1,14 @@
 package org.glukit.export;
 
+import com.google.common.io.Files;
 import org.glukit.sync.api.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,10 +21,23 @@ import static com.google.common.collect.Lists.newArrayList;
  * @author alexandre.normand
  */
 public class TestXmlDataExporter {
+  private BloodShepherdProperties bloodShepherdProperties = new BloodShepherdProperties();
+  private File tempDirectory;
+
+  @Before
+  public void setup() throws Exception {
+    this.tempDirectory = Files.createTempDir();
+    this.bloodShepherdProperties.put(BloodShepherdProperties.OUTPUT_PATH, this.tempDirectory.getAbsolutePath());
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    this.tempDirectory.delete();
+  }
+
   @Test
   public void testExportGlucoseRead() throws Exception {
-    XmlDataExporter xmlDataExporter = new XmlDataExporter();
-    xmlDataExporter.setPrintStream(System.out);
+    XmlDataExporter xmlDataExporter = new XmlDataExporter(this.bloodShepherdProperties);
 
     List<InsulinInjection> injections = Collections.emptyList();
     List<FoodEvent> foods = Collections.emptyList();
@@ -34,8 +51,7 @@ public class TestXmlDataExporter {
 
   @Test
   public void testEventSort() throws Exception {
-    XmlDataExporter xmlDataExporter = new XmlDataExporter();
-    xmlDataExporter.setPrintStream(System.out);
+    XmlDataExporter xmlDataExporter = new XmlDataExporter(this.bloodShepherdProperties);
 
     List<InsulinInjection> injections = Collections.emptyList();
     List<FoodEvent> foods = newArrayList();
