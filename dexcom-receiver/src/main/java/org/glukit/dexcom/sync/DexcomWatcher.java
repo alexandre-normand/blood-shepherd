@@ -29,6 +29,7 @@ import jssc.SerialPort;
 import org.glukit.dexcom.sync.model.DexcomSyncData;
 import org.glukit.dexcom.sync.tasks.FetchNewDataRunner;
 import org.glukit.sync.AdapterService;
+import org.glukit.sync.api.BloodShepherdPreferences;
 import org.glukit.sync.api.DataExporter;
 import org.glukit.sync.api.ReceiverSyncData;
 import org.glukit.sync.api.SyncData;
@@ -40,6 +41,9 @@ import javax.usb.UsbDevice;
 import javax.usb.UsbDeviceDescriptor;
 import javax.usb.event.UsbServicesEvent;
 import javax.usb.event.UsbServicesListener;
+
+import java.util.prefs.Preferences;
+import java.util.prefs.PreferencesFactory;
 
 import static java.lang.String.format;
 
@@ -56,18 +60,21 @@ public class DexcomWatcher implements UsbServicesListener {
   private final FetchNewDataRunner fetchNewDataRunner;
   private final AdapterService adapterService;
   private final DataExporter dataExporter;
+  private final BloodShepherdPreferences preferences;
 
   @Inject
   public DexcomWatcher(DeviceFilter deviceFilter,
                        DexcomReceiverFinder receiverFinder,
                        FetchNewDataRunner fetchNewDataRunner,
                        AdapterService adapterService,
-                       DataExporter dataExporter) {
+                       DataExporter dataExporter,
+                       BloodShepherdPreferences preferences) {
     this.deviceFilter = deviceFilter;
     this.receiverFinder = receiverFinder;
     this.fetchNewDataRunner = fetchNewDataRunner;
     this.adapterService = adapterService;
     this.dataExporter = dataExporter;
+    this.preferences = preferences;
   }
 
   @Override
@@ -82,15 +89,18 @@ public class DexcomWatcher implements UsbServicesListener {
 
         String receiverPort = this.receiverFinder.findReceiverPort();
 
-        Instant since = Instant.now();
-        LOGGER.info(format("Downloading new data since %s...", since));
-        ReceiverSyncData receiverSyncData = this.fetchNewDataRunner.fetchData(new SerialPort(receiverPort), since);
+        Instant lastSyncTime = this.preferences.getLastSyncTime();
+        LOGGER.info(format("Downloading new data since %s...", lastSyncTime));
+        ReceiverSyncData receiverSyncData = this.fetchNewDataRunner.fetchData(new SerialPort(receiverPort),
+                lastSyncTime);
 
         @SuppressWarnings("unchecked")
         SyncData syncData = this.adapterService.convertData(receiverSyncData);
 
         this.dataExporter.exportData(syncData);
 
+        // Save last sync time
+        this.preferences.saveLastSyncTime(syncData.getUpdateTime());
         LOGGER.info(format("Exported data up to %s", receiverSyncData.getUpdateTime()));
       } catch (Exception e) {
         throw Throwables.propagate(e);

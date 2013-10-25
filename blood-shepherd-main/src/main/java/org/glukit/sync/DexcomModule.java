@@ -29,12 +29,14 @@ import com.google.inject.Provides;
 import org.glukit.dexcom.sync.*;
 import org.glukit.dexcom.sync.g4.DexcomG4DeviceFilter;
 import org.glukit.export.XmlDataExporter;
+import org.glukit.sync.api.BloodShepherdPreferences;
 import org.glukit.sync.api.BloodShepherdProperties;
 import org.glukit.sync.api.DataExporter;
 
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
 import javax.usb.UsbServices;
+import java.util.prefs.Preferences;
 
 /**
  * Guice module with the dependencies configuration.
@@ -73,5 +75,10 @@ public class DexcomModule extends AbstractModule {
   @Provides
   BloodShepherdProperties provideBloodShepherdProperties() {
     return properties;
+  }
+
+  @Provides
+  BloodShepherdPreferences provideBloodShepherdPreferences() {
+    return new BloodShepherdPreferences(Preferences.userRoot());
   }
 }

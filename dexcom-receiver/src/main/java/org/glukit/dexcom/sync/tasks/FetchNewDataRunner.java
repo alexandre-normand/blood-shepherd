@@ -23,7 +23,9 @@
 
 package org.glukit.dexcom.sync.tasks;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
 import com.google.inject.Inject;
 import jssc.SerialPort;
 import jssc.SerialPortException;
@@ -38,6 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -76,7 +80,7 @@ public class FetchNewDataRunner {
    * @param since      unused at the moment, this optimization might come later
    * @return the synced data, it's the whole thing of what's still in the receiver memory.
    */
-  public DexcomSyncData fetchData(SerialPort serialPort, Instant since) {
+  public DexcomSyncData fetchData(final SerialPort serialPort, final Instant since) {
     try {
       serialPort.openPort();
       if (!serialPort.isOpened()) {
@@ -86,14 +90,37 @@ public class FetchNewDataRunner {
       LOGGER.info(format("Opened port [%s]: %b", serialPort.getPortName(), serialPort.isOpened()));
       serialPort.setParams(FIRMWARE_BAUD_RATE, DATA_BITS, STOP_BITS, NO_PARITY);
 
-      ManufacturingParameters manufacturingData = getManufacturingData(serialPort);
-      List<GlucoseReadRecord> glucoseReads = getGlucoseReads(serialPort);
-      List<UserEventRecord> userEvents = getUserEvents(serialPort);
+      final ManufacturingParameters manufacturingData = getManufacturingData(serialPort);
+      final long sinceRelativeToDexcomEpoch = since.getEpochSecond() - DEXCOM_EPOCH.getEpochSecond();
+
+      final List<GlucoseReadRecord> glucoseReads = getGlucoseReadsSince(serialPort, sinceRelativeToDexcomEpoch);
+      List<UserEventRecord> userEvents = getUserEventRecordsSince(serialPort, sinceRelativeToDexcomEpoch);
 
       return new DexcomSyncData(glucoseReads, userEvents, manufacturingData);
     } catch (SerialPortException e) {
       throw Throwables.propagate(e);
     }
+  }
+
+  private List<UserEventRecord> getUserEventRecordsSince(SerialPort serialPort, final long sinceRelativeToDexcomEpoch) throws SerialPortException {
+    return newArrayList(Collections2.filter(getUserEvents(serialPort), new Predicate<UserEventRecord>() {
+      @Override
+      public boolean apply(@Nullable UserEventRecord input) {
+        return input.getInternalSecondsSinceDexcomEpoch() > sinceRelativeToDexcomEpoch;
+
+      }
+    }));
+  }
+
+  private List<GlucoseReadRecord> getGlucoseReadsSince(SerialPort serialPort, final long sinceRelativeToDexcomEpoch) throws SerialPortException {
+    return newArrayList(Collections2.filter(getGlucoseReads(serialPort),
+            new Predicate<GlucoseReadRecord>() {
+              @Override
+              public boolean apply(@Nullable GlucoseReadRecord input) {
+                return input.getInternalSecondsSinceDexcomEpoch() > sinceRelativeToDexcomEpoch;
+
+              }
+            }));
   }
 
   private ManufacturingParameters getManufacturingData(SerialPort serialPort) throws SerialPortException {
@@ -174,20 +201,20 @@ public class FetchNewDataRunner {
   }
 
   private List<UserEventRecord> getUserEvents(SerialPort serialPort) throws SerialPortException {
-      List<UserEventRecord> allUserEvents = newArrayList();
+    List<UserEventRecord> allUserEvents = newArrayList();
 
-      DatabasePagesPager manufacturingDataPager = getPagerForRecordType(serialPort, UserEventData);
+    DatabasePagesPager manufacturingDataPager = getPagerForRecordType(serialPort, UserEventData);
 
-      for (DatabaseReadRequestSpec readRequestSpec : manufacturingDataPager) {
-        UserEventsDatabasePagesResponse userEventRecordPage =
-                readDatabasePage(UserEventsDatabasePagesResponse.class, serialPort, readRequestSpec, UserEventData);
+    for (DatabaseReadRequestSpec readRequestSpec : manufacturingDataPager) {
+      UserEventsDatabasePagesResponse userEventRecordPage =
+              readDatabasePage(UserEventsDatabasePagesResponse.class, serialPort, readRequestSpec, UserEventData);
 
-        List<UserEventRecord> glucoseReadRecords = userEventRecordPage.getRecords();
-        allUserEvents.addAll(glucoseReadRecords);
-      }
-
-      return allUserEvents;
+      List<UserEventRecord> glucoseReadRecords = userEventRecordPage.getRecords();
+      allUserEvents.addAll(glucoseReadRecords);
     }
+
+    return allUserEvents;
+  }
 
   private Utf8PayloadGenericResponse readFirmwareHeader(SerialPort serialPort) throws SerialPortException {
     ReadFirmwareHeader readFirmwareHeader = new ReadFirmwareHeader(this.dataOutputFactory);
