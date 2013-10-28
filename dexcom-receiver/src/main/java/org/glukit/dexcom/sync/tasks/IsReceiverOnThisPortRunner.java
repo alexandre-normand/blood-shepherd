@@ -91,7 +91,7 @@ public class IsReceiverOnThisPortRunner {
           LOGGER.debug(format("Closing port %s", serialPort.getPortName()));
           serialPort.closePort();
         } catch (SerialPortException e) {
-          LOGGER.debug("Error closing port, ignoring.", e);
+          LOGGER.warn("Error closing port, ignoring.", e);
         }
       }
     }

@@ -97,7 +97,15 @@ public class FetchNewDataRunner {
       List<UserEventRecord> userEvents = getUserEventRecordsSince(serialPort, sinceRelativeToDexcomEpoch);
 
       return new DexcomSyncData(glucoseReads, userEvents, manufacturingData);
-    } catch (SerialPortException e) {
+    } catch (Throwable e) {
+      if (serialPort.isOpened()) {
+        try {
+          LOGGER.debug(format("Closing port %s", serialPort.getPortName()));
+          serialPort.closePort();
+        } catch (SerialPortException se) {
+          LOGGER.warn("Error closing port, ignoring.", se);
+        }
+      }
       throw Throwables.propagate(e);
     }
   }

@@ -26,7 +26,6 @@ package org.glukit.dexcom.sync;
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import jssc.SerialPort;
-import org.glukit.dexcom.sync.model.DexcomSyncData;
 import org.glukit.dexcom.sync.tasks.FetchNewDataRunner;
 import org.glukit.sync.AdapterService;
 import org.glukit.sync.api.BloodShepherdPreferences;
@@ -41,9 +40,6 @@ import javax.usb.UsbDevice;
 import javax.usb.UsbDeviceDescriptor;
 import javax.usb.event.UsbServicesEvent;
 import javax.usb.event.UsbServicesListener;
-
-import java.util.prefs.Preferences;
-import java.util.prefs.PreferencesFactory;
 
 import static java.lang.String.format;
 
@@ -102,7 +98,7 @@ public class DexcomWatcher implements UsbServicesListener {
         // Save last sync time
         this.preferences.saveLastSyncTime(syncData.getUpdateTime());
         LOGGER.info(format("Exported data up to %s", receiverSyncData.getUpdateTime()));
-      } catch (Exception e) {
+      } catch (Throwable e) {
         throw Throwables.propagate(e);
       }
     } else {

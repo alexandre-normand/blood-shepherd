@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
@@ -20,7 +19,6 @@ import javax.inject.Inject;
 import java.io.*;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
@@ -35,8 +33,6 @@ import static org.glukit.sync.api.BloodShepherdProperties.OUTPUT_PATH;
  */
 public class XmlDataExporter implements DataExporter {
   private static DateTimeFormatter dateTimeFormatter;
-
-  private PrintStream printStream;
 
   private BloodShepherdProperties properties;
 
@@ -54,10 +50,10 @@ public class XmlDataExporter implements DataExporter {
     dateTimeFormatter = builder.toFormatter().withZone(ZoneId.of("UTC"));
   }
 
-  private Function<GlucoseRead, TimestampedValue> GLUCOSE_READ_TO_TIMESTAMPED_VALUE =
-          new Function<GlucoseRead, TimestampedValue>() {
+  private Function<GlucoseRead, Timestamped> GLUCOSE_READ_TO_TIMESTAMPED_VALUE =
+          new Function<GlucoseRead, Timestamped>() {
             @Override
-            public TimestampedValue apply(@javax.annotation.Nullable GlucoseRead glucoseRead) {
+            public Timestamped apply(@javax.annotation.Nullable GlucoseRead glucoseRead) {
               checkNotNull(glucoseRead, "glucoseRead should be non-null");
 
               return new TimestampedValue(dateTimeFormatter.format(glucoseRead.getInternalTime()),
@@ -66,62 +62,61 @@ public class XmlDataExporter implements DataExporter {
           };
 
   private Function<FoodEvent, EventMarker> FOOD_EVENT_TO_EVENT_MARKER =
-            new Function<FoodEvent, EventMarker>() {
-              @Override
-              public EventMarker apply(@Nullable FoodEvent foodEvent) {
-                checkNotNull(foodEvent, "foodEvent should be non-null");
+          new Function<FoodEvent, EventMarker>() {
+            @Override
+            public EventMarker apply(@Nullable FoodEvent foodEvent) {
+              checkNotNull(foodEvent, "foodEvent should be non-null");
 
-                String formattedValue = format("%.2f", foodEvent.getCarbohydrates());
-                  return new EventMarker(
-                          dateTimeFormatter.format(foodEvent.getInternalTime()),
-                          dateTimeFormatter.format(foodEvent.getLocalTime()),
-                          formattedValue, dateTimeFormatter.format(foodEvent.getEventLocalTime()), "Carbs",
-                          format("Carbs %s grams", formattedValue));
-              }
-            };
+              String formattedValue = format("%.2f", foodEvent.getCarbohydrates());
+              return new EventMarker(
+                      dateTimeFormatter.format(foodEvent.getInternalTime()),
+                      dateTimeFormatter.format(foodEvent.getLocalTime()),
+                      dateTimeFormatter.format(foodEvent.getEventLocalTime()), "Carbs",
+                      format("Carbs %s grams", formattedValue));
+            }
+          };
 
   private Function<InsulinInjection, EventMarker> INSULIN_INJECTION_TO_EVENT_MARKER =
-              new Function<InsulinInjection, EventMarker>() {
-                @Override
-                public EventMarker apply(@javax.annotation.Nullable InsulinInjection insulinInjection) {
-                  checkNotNull(insulinInjection, "insulinInjection should be non-null");
+          new Function<InsulinInjection, EventMarker>() {
+            @Override
+            public EventMarker apply(@javax.annotation.Nullable InsulinInjection insulinInjection) {
+              checkNotNull(insulinInjection, "insulinInjection should be non-null");
 
-                  String formattedValue = format("%.2f", insulinInjection.getUnitValue());
-                  return new EventMarker(
-                          dateTimeFormatter.format(insulinInjection.getInternalTime()),
-                          dateTimeFormatter.format(insulinInjection.getLocalTime()),
-                          formattedValue, dateTimeFormatter.format(insulinInjection.getEventLocalTime()), "Insulin",
-                          format("Insulin %s units", formattedValue));
-                }
-              };
+              String formattedValue = format("%.2f", insulinInjection.getUnitValue());
+              return new EventMarker(
+                      dateTimeFormatter.format(insulinInjection.getInternalTime()),
+                      dateTimeFormatter.format(insulinInjection.getLocalTime()),
+                      dateTimeFormatter.format(insulinInjection.getEventLocalTime()), "Insulin",
+                      format("Insulin %s units", formattedValue));
+            }
+          };
 
   private Function<ExerciseSession.Intensity, String> EXERCISE_INTENSITY_TO_EVENT_TYPE =
           new Function<ExerciseSession.Intensity, String>() {
-    @Nullable
-    @Override
-    public String apply(@Nullable ExerciseSession.Intensity intensity) {
-      checkNotNull(intensity, "intensity must be non-null");
-      return StringUtils.capitalize(StringUtils.lowerCase(intensity.name()));
-    }
-  };
+            @Nullable
+            @Override
+            public String apply(@Nullable ExerciseSession.Intensity intensity) {
+              checkNotNull(intensity, "intensity must be non-null");
+              return StringUtils.capitalize(StringUtils.lowerCase(intensity.name()));
+            }
+          };
 
   private Function<ExerciseSession, EventMarker> EXERCISE_SESSION_TO_EVENT_MARKER =
-                new Function<ExerciseSession, EventMarker>() {
-                  @Override
-                  public EventMarker apply(@javax.annotation.Nullable ExerciseSession exerciseSession) {
-                    checkNotNull(exerciseSession, "exerciseSession should be non-null");
+          new Function<ExerciseSession, EventMarker>() {
+            @Override
+            public EventMarker apply(@javax.annotation.Nullable ExerciseSession exerciseSession) {
+              checkNotNull(exerciseSession, "exerciseSession should be non-null");
 
-                    String intensityLabel = EXERCISE_INTENSITY_TO_EVENT_TYPE.apply(exerciseSession.getIntensity());
-                    String formattedValue = format("%d", exerciseSession.getDuration().toMinutes());
-                    return new EventMarker(
-                            dateTimeFormatter.format(exerciseSession.getInternalTime()),
-                            dateTimeFormatter.format(exerciseSession.getLocalTime()),
-                            formattedValue, dateTimeFormatter.format(exerciseSession.getEventLocalTime()),
-                            format("Exercise%s", intensityLabel),
-                            format("Exercise %s (%d minutes)", intensityLabel,
-                                    exerciseSession.getDuration().toMinutes()));
-                  }
-                };
+              String intensityLabel = EXERCISE_INTENSITY_TO_EVENT_TYPE.apply(exerciseSession.getIntensity());
+              return new EventMarker(
+                      dateTimeFormatter.format(exerciseSession.getInternalTime()),
+                      dateTimeFormatter.format(exerciseSession.getLocalTime()),
+                      dateTimeFormatter.format(exerciseSession.getEventLocalTime()),
+                      format("Exercise%s", intensityLabel),
+                      format("Exercise %s (%d minutes)", intensityLabel,
+                              exerciseSession.getDuration().toMinutes()));
+            }
+          };
 
   @Override
   public void exportData(SyncData syncData) {
@@ -134,22 +129,22 @@ public class XmlDataExporter implements DataExporter {
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true);
     ObjectWriter objectWriter = xmlMapper.writerWithDefaultPrettyPrinter();
-    
-    PatientData patientData = new PatientData();
-    patientData.SerialNumber = syncData.getDeviceInfo().getSerialNumber();
+
+    Patient patient = new Patient();
+    patient.SerialNumber = syncData.getDeviceInfo().getSerialNumber();
     sort(syncData.getGlucoseReads());
-    patientData.GlucoseReading = newArrayList(Collections2.transform(syncData.getGlucoseReads(),
+    patient.Glucose = newArrayList(Collections2.transform(syncData.getGlucoseReads(),
             GLUCOSE_READ_TO_TIMESTAMPED_VALUE));
     List<EventMarker> eventMarkers = newArrayList(
             Collections2.transform(syncData.getExerciseSessions(), EXERCISE_SESSION_TO_EVENT_MARKER));
     eventMarkers.addAll(Collections2.transform(syncData.getFoodEvents(), FOOD_EVENT_TO_EVENT_MARKER));
     eventMarkers.addAll(Collections2.transform(syncData.getInsulinInjections(), INSULIN_INJECTION_TO_EVENT_MARKER));
     sort(eventMarkers);
-    patientData.EventMarker = eventMarkers;
+    patient.Event = eventMarkers;
 
     try {
       OutputStream outputStream = getOutputStream(outputDirectory, syncData);
-      objectWriter.writeValue(outputStream, patientData);
+      objectWriter.writeValue(outputStream, patient);
       outputStream.close();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -161,67 +156,67 @@ public class XmlDataExporter implements DataExporter {
     return new FileOutputStream(new File(destinationDirectory, fileName), false);
   }
 
-  public static final class PatientData {
-    @JacksonXmlProperty(isAttribute=true)
+  public static final class Patient {
+    @JacksonXmlProperty(isAttribute = true)
     public String Id = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String FirstName = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String LastName = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String MiddleName = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String SerialNumber = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String Initials = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String PreferredName = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String PatientNumber = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String PatientIdentifier = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String OtherIdentifier = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String Gender = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String DateOfBirth = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String DoctorsName = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String Email = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String PhoneNumber = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String PhoneExtension = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String SiteIdentifier = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String StudyIdentifier = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String Comments = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String IsDataBlinded = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String IsKeepPrivate = "";
 
     @JacksonXmlElementWrapper(localName = "MeterReadings")
-    public List<TimestampedValue> MeterReading = newArrayList();
+    public List<Timestamped> MeterReading = newArrayList();
     @JacksonXmlElementWrapper(localName = "GlucoseReadings")
-    public List<TimestampedValue> GlucoseReading = newArrayList();
+    public List<Timestamped> Glucose = newArrayList();
     @JacksonXmlElementWrapper(localName = "EventMarkers")
-    public List<EventMarker> EventMarker = newArrayList();
+    public List<EventMarker> Event = newArrayList();
 
-    public PatientData() {
+    public Patient() {
     }
 
-    public PatientData(String id, String firstName, String lastName, String middleName, String serialNumber,
-                       String initials, String preferredName, String patientNumber, String patientIdentifier,
-                       String otherIdentifier, String gender, String dateOfBirth, String doctorsName, String email,
-                       String phoneNumber, String phoneExtension, String siteIdentifier, String studyIdentifier,
-                       String comments, String isDataBlinded, String isKeepPrivate,
-                       List<TimestampedValue> meterReadings, List<TimestampedValue> glucoseReading,
-                       List<EventMarker> eventMarker) {
+    public Patient(String id, String firstName, String lastName, String middleName, String serialNumber,
+                   String initials, String preferredName, String patientNumber, String patientIdentifier,
+                   String otherIdentifier, String gender, String dateOfBirth, String doctorsName, String email,
+                   String phoneNumber, String phoneExtension, String siteIdentifier, String studyIdentifier,
+                   String comments, String isDataBlinded, String isKeepPrivate,
+                   List<Timestamped> meterReadings, List<Timestamped> glucose,
+                   List<EventMarker> event) {
       Id = id;
       FirstName = firstName;
       LastName = lastName;
@@ -244,52 +239,63 @@ public class XmlDataExporter implements DataExporter {
       IsDataBlinded = isDataBlinded;
       IsKeepPrivate = isKeepPrivate;
       MeterReading = meterReadings;
-      GlucoseReading = glucoseReading;
-      EventMarker = eventMarker;
+      Glucose = glucose;
+      Event = event;
     }
   }
 
-  public static class TimestampedValue implements Comparable<TimestampedValue> {
-    @JacksonXmlProperty(isAttribute=true)
+  public static class Timestamped implements Comparable<Timestamped> {
+    @JacksonXmlProperty(isAttribute = true)
     public String InternalTime = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String DisplayTime = "";
-    @JacksonXmlProperty(isAttribute=true)
+
+    public Timestamped() {
+    }
+
+    public Timestamped(String internalTime, String displayTime) {
+      InternalTime = internalTime;
+      DisplayTime = displayTime;
+    }
+
+    @Override
+    public int compareTo(Timestamped other) {
+      return this.InternalTime.compareTo(other.InternalTime);
+    }
+  }
+
+  public static class TimestampedValue extends Timestamped {
+    @JacksonXmlProperty(isAttribute = true)
     public String Value = "";
 
     public TimestampedValue() {
     }
 
-    public TimestampedValue(String internalTime, String displayTime, String value) {
-      InternalTime = internalTime;
-      DisplayTime = displayTime;
-      Value = value;
-    }
-
-    @Override
-    public int compareTo(TimestampedValue other) {
-      return this.InternalTime.compareTo(other.InternalTime);
+    public TimestampedValue(String internalTime,
+                            String displayTime,
+                            String value) {
+      super(internalTime, displayTime);
+      this.Value = value;
     }
   }
 
-  public static class EventMarker extends TimestampedValue {
-    @JacksonXmlProperty(isAttribute=true)
+  public static class EventMarker extends Timestamped {
+    @JacksonXmlProperty(isAttribute = true)
     public String EventTime = "";
-    @JacksonXmlProperty(isAttribute=true)
+    @JacksonXmlProperty(isAttribute = true)
     public String EventType = "";
-    @JacksonXmlProperty(isAttribute=true)
-    public String Description = "";
+    @JacksonXmlProperty(isAttribute = true)
+    public String Decription = "";
 
     public EventMarker(String internalTime,
                        String displayTime,
-                       String value,
                        String eventTime,
                        String eventType,
-                       String description) {
-      super(internalTime, displayTime, value);
+                       String decription) {
+      super(internalTime, displayTime);
       EventTime = eventTime;
       EventType = eventType;
-      Description = description;
+      Decription = decription;
     }
   }
 }

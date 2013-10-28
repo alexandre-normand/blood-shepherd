@@ -11,18 +11,17 @@ import java.util.prefs.Preferences;
  */
 public class BloodShepherdPreferences {
   public static final String LAST_SYNC = "last.sync";
-  private final Preferences preferences;
+  private final Preferences preferences = Preferences.userNodeForPackage(this.getClass());
 
-  public BloodShepherdPreferences(Preferences preferences) {
-    this.preferences = preferences;
+  public BloodShepherdPreferences() {
   }
 
   public Instant getLastSyncTime() {
-    String value = this.preferences.get(LAST_SYNC, "0");
-    return Instant.ofEpochMilli(Long.valueOf(value));
+    long value = this.preferences.getLong(LAST_SYNC, 0L);
+    return Instant.ofEpochMilli(value);
   }
 
   public void saveLastSyncTime(Instant lastSyncTime) {
-    this.preferences.put(LAST_SYNC, Long.toString(lastSyncTime.toEpochMilli()));
+    this.preferences.putLong(LAST_SYNC, lastSyncTime.toEpochMilli());
   }
 }

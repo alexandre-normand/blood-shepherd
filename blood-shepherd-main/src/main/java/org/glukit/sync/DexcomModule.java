@@ -36,7 +36,6 @@ import org.glukit.sync.api.DataExporter;
 import javax.usb.UsbException;
 import javax.usb.UsbHostManager;
 import javax.usb.UsbServices;
-import java.util.prefs.Preferences;
 
 /**
  * Guice module with the dependencies configuration.
@@ -79,6 +78,6 @@ public class DexcomModule extends AbstractModule {
 
   @Provides
   BloodShepherdPreferences provideBloodShepherdPreferences() {
-    return new BloodShepherdPreferences(Preferences.userRoot());
+    return new BloodShepherdPreferences();
   }
 }

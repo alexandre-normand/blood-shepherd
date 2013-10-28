@@ -35,6 +35,7 @@ import org.glukit.dexcom.sync.LittleEndianDataOutputFactory;
 import org.glukit.dexcom.sync.g4.DexcomG4DeviceFilter;
 import org.glukit.export.XmlDataExporter;
 import org.glukit.sync.AdapterService;
+import org.glukit.sync.api.BloodShepherdPreferences;
 import org.glukit.sync.api.BloodShepherdProperties;
 import org.glukit.sync.api.DataExporter;
 
@@ -49,35 +50,40 @@ import javax.usb.UsbServices;
  */
 public class DexcomModule extends AbstractModule {
 
-    private final BloodShepherdProperties properties;
+  private final BloodShepherdProperties properties;
 
-    public DexcomModule(BloodShepherdProperties properties) {
-        this.properties = properties;
+  public DexcomModule(BloodShepherdProperties properties) {
+    this.properties = properties;
+  }
+
+  @Override
+  protected void configure() {
+    bind(DeviceFilter.class).to(DexcomG4DeviceFilter.class);
+
+    bind(DataOutputFactory.class).to(LittleEndianDataOutputFactory.class);
+    bind(DataInputFactory.class).to(LittleEndianDataInputFactory.class);
+    bind(AdapterService.class).to(DexcomAdapterService.class);
+    bind(DataExporter.class).to(XmlDataExporter.class);
+  }
+
+  @Provides
+  UsbServices provideUsbServices() {
+    UsbServices usbServices = null;
+    try {
+      usbServices = UsbHostManager.getUsbServices();
+    } catch (UsbException e) {
+      throw Throwables.propagate(e);
     }
+    return usbServices;
+  }
 
-    @Override
-    protected void configure() {
-        bind(DeviceFilter.class).to(DexcomG4DeviceFilter.class);
+  @Provides
+  BloodShepherdProperties provideBloodShepherdProperties() {
+    return properties;
+  }
 
-        bind(DataOutputFactory.class).to(LittleEndianDataOutputFactory.class);
-        bind(DataInputFactory.class).to(LittleEndianDataInputFactory.class);
-        bind(AdapterService.class).to(DexcomAdapterService.class);
-        bind(DataExporter.class).to(XmlDataExporter.class);
-    }
-
-    @Provides
-    UsbServices provideUsbServices() {
-        UsbServices usbServices = null;
-        try {
-            usbServices = UsbHostManager.getUsbServices();
-        } catch (UsbException e) {
-            Throwables.propagate(e);
-        }
-        return usbServices;
-    }
-
-    @Provides
-    BloodShepherdProperties provideBloodShepherdProperties() {
-        return properties;
-    }
+  @Provides
+  BloodShepherdPreferences provideBloodShepherdPreferences() {
+    return new BloodShepherdPreferences();
+  }
 }

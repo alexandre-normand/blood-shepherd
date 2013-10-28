@@ -31,7 +31,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.glukit.dexcom.sync.DexcomDaemon;
 import org.glukit.export.XmlDataExporter;
+import org.glukit.sync.api.BloodShepherdPreferences;
 import org.glukit.sync.api.BloodShepherdProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.threeten.bp.Instant;
 
 import javax.usb.UsbException;
 import java.io.File;
@@ -46,10 +50,15 @@ import static java.lang.String.format;
  * @author alexandre.normand
  */
 public class DexcomReceiverSyncService {
+  private static Logger LOGGER = LoggerFactory.getLogger(DexcomReceiverSyncService.class);
+
   @Parameter(names = "-outputPath", required = true,
           description = "the output path of the exported files (make it something under your google drive local sync directory",
           validateWith = ExistingDirectoryValidator.class)
   String outputPath;
+
+  @Parameter(names = "-sinceAsEpochMillis", required = false, description = "resets the value of the last sync time to the provided value")
+  Long since;
 
   public DexcomReceiverSyncService() {
 
@@ -59,6 +68,13 @@ public class DexcomReceiverSyncService {
     BloodShepherdProperties properties = new BloodShepherdProperties();
     properties.putAll(System.getProperties());
     properties.put(BloodShepherdProperties.OUTPUT_PATH, this.outputPath);
+
+    BloodShepherdPreferences preferences = new BloodShepherdPreferences();
+    if (this.since != null) {
+      LOGGER.info("Overriding last sync time to {}.", this.since);
+      preferences.saveLastSyncTime(Instant.ofEpochMilli(this.since));
+    }
+
     Injector injector = Guice.createInjector(new DexcomModule(properties));
     final DexcomDaemon dexcomDaemon = injector.getInstance(DexcomDaemon.class);
 
