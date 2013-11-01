@@ -127,7 +127,6 @@ public class XmlDataExporter implements DataExporter {
     checkState(outputDirectory.isDirectory(), "Invalid destination: %s is not a directory", outputPath);
 
     XmlMapper xmlMapper = new XmlMapper();
-    xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true);
     ObjectWriter objectWriter = xmlMapper.writerWithDefaultPrettyPrinter();
 
     Patient patient = new Patient();

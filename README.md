@@ -21,8 +21,7 @@ Run it
 
 Status
 ------
-Sending a IsFirmware command goes through but it's likely that the bytes are not following the proper ordering.
-See trace [here](https://github.com/bewest/decoding-dexcom/blob/master/alexandre-normand/hex-lines.txt) for some hints.
+It's rough but it works as both a pure command-line tool and also wrapped as a SWT system tray application. 
 
 Notes
 -----
