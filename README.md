@@ -28,3 +28,7 @@ Notes
 Everything is little-endian. Thankfully, google-guava has a nice
 [LittleEndianDataOutputStream](http://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/io/LittleEndianDataOutputStream.html)
 that provides the same convenient interface while breaking Java's contract of big-endianness.
+
+Resources
+---------
+Here's the successor to blood-shepherd as a objective-c library. It's not exactly a superset of blood-sheperd but it does have a better general support. It's called [blood-sheltie](https://github.com/alexandre-normand/blood-sheltie).
