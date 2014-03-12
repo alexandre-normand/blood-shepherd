@@ -27,13 +27,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>repo.local</id>
-            <name>dexcom-sync-org.glukit.sync.api-unmanaged-dependencies</name>
-            <url>file:${project.parent.relativePath}/repo.local</url>
-        </repository>
-    </repositories>
-
 </project>

@@ -135,6 +135,11 @@
             <name>Ailis Maven Releases</name>
             <url>http://nexus.ailis.de/content/groups/public/</url>
         </repository>
+	<repository>
+	    <id>repo.local</id>
+	    <name>dexcom-sync-org.glukit.sync.api-unmanaged-dependencies</name>
+	    <url>file:${basedir}/../repo.local</url>
+	</repository>
     </repositories>
 
 
