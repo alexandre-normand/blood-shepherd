@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * @author alexandre.normand
  */
 public class DexcomReceiverFinder {
-  public static final Pattern DEVICE_FILTER = Pattern.compile(".*\\.usbmodem.*");
+  public static final Pattern DEVICE_FILTER = Pattern.compile(".*tty.dexgblrecv.*");
   private final IsReceiverOnThisPortRunner isReceiverOnThisPortRunner;
 
   @Inject
@@ -44,6 +44,7 @@ public class DexcomReceiverFinder {
 
   public String findReceiverPort() {
     String[] portNames = SerialPortList.getPortNames(DEVICE_FILTER);
+
     if (portNames == null || portNames.length == 0) {
       throw new IllegalStateException("Receiver serial port can't be found");
     }
