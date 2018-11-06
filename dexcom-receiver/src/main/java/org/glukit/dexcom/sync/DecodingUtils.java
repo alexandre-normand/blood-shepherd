@@ -24,12 +24,14 @@
 package org.glukit.dexcom.sync;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
 import com.google.common.primitives.UnsignedInts;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.DatatypeConverter;
+;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -103,7 +105,11 @@ public final class DecodingUtils {
    */
   public static byte[] fromHexString(String hexString) {
     String hexStringWithoutSpaces = StringUtils.remove(hexString, " ");
-    return DatatypeConverter.parseHexBinary(hexStringWithoutSpaces);
+    try {
+      return Hex.decodeHex(hexStringWithoutSpaces.toCharArray());
+    } catch (DecoderException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   /**
