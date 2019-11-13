@@ -23,12 +23,11 @@
 package org.glukit.dexcom.sync;
 
 import com.google.inject.Inject;
-import de.ailis.usb4java.libusb.LibUsb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.usb4java.LibUsb;
 
 import javax.usb.UsbServices;
-import java.util.Properties;
 
 /**
  * The daemon that will start the syncing services.
